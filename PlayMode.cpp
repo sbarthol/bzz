@@ -164,18 +164,18 @@ void PlayMode::update(float elapsed) {
 		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;
 
 		glm::mat4x3 frame = camera->transform->make_local_to_parent();
-		glm::vec3 right = frame[0];
+		glm::vec3 frame_right = frame[0];
 		//glm::vec3 up = frame[1];
-		glm::vec3 forward = -frame[2];
+		glm::vec3 frame_forward = -frame[2];
 
-		camera->transform->position += move.x * right + move.y * forward;
+		camera->transform->position += move.x * frame_right + move.y * frame_forward;
 	}
 
 	{ //update listener to camera position:
 		glm::mat4x3 frame = camera->transform->make_local_to_parent();
-		glm::vec3 right = frame[0];
-		glm::vec3 at = frame[3];
-		Sound::listener.set_position_right(at, right, 1.0f / 60.0f);
+		glm::vec3 frame_right = frame[0];
+		glm::vec3 frame_at = frame[3];
+		Sound::listener.set_position_right(frame_at, frame_right, 1.0f / 60.0f);
 	}
 
 	//reset button press counters:
