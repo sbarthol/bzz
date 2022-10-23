@@ -25,6 +25,11 @@ struct PlayMode : Mode {
 		uint8_t pressed = 0;
 	} left, right, down, up;
 
+	void spawn_cricket();
+	Scene::Transform *first_cricket;
+	float total_elapsed = 0.0;
+	
+
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
 	

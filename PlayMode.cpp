@@ -36,7 +36,40 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 	});
 });
 
+// https://stackoverflow.com/questions/5289613/generate-random-float-between-two-floats
+float getRngRange(float a, float b) {
+	float random = ((float) rand()) / (float) RAND_MAX;
+  float diff = b - a;
+  float r = random * diff;
+  return a + r;
+}
+
+void PlayMode::spawn_cricket() {
+	Mesh const &mesh = bzz_meshes->lookup("Cricket");
+
+	scene.transforms.emplace_back();
+	Scene::Transform *transform = &scene.transforms.back();
+	transform->position = first_cricket->position + glm::vec3(getRngRange(-0.5,0.5), getRngRange(-0.5,0.5), 0.0);
+	transform->rotation = glm::rotate(first_cricket->rotation, getRngRange(0.0,360.0), glm::vec3(0.0,0.0,1.0));
+	transform->scale = first_cricket->scale;
+
+	scene.drawables.emplace_back(Scene::Drawable(transform));
+	Scene::Drawable &drawable = scene.drawables.back();
+
+	drawable.pipeline = lit_color_texture_program_pipeline;
+
+	drawable.pipeline.vao = bzz_meshes_for_lit_color_texture_program;
+	drawable.pipeline.type = mesh.type;
+	drawable.pipeline.start = mesh.start;
+	drawable.pipeline.count = mesh.count;
+}
+
 PlayMode::PlayMode() : scene(*bzz_scene) {
+
+	//get pointers to leg for convenience:
+	for (auto &transform : scene.transforms) {
+		if (transform.name == "Cricket") first_cricket = &transform;
+	}
 
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
@@ -107,6 +140,16 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 }
 
 void PlayMode::update(float elapsed) {
+
+	//spawn a new cricket
+	{
+		const float CricketSpawnPeriod = 3.0;
+		total_elapsed += elapsed;
+		if (total_elapsed > CricketSpawnPeriod) {
+			total_elapsed -= CricketSpawnPeriod;
+			spawn_cricket();
+		}
+	}
 
 	//move camera:
 	{
