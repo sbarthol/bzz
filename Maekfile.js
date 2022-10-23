@@ -811,17 +811,12 @@ function init_maek() {
 			return hash;
 		}
 
-		//get all hashes:
-		if (OS === 'windows') {
-			//work in serial since otherwise windows can run out of file descriptors:
-			const hashes = [];
-			for (let file of files) {
-				hashes.push(await hashFile(file));
-			}
-			return hashes;
-		} else {
-			return await Promise.all(files.map(hashFile));
+		//work in serial since otherwise windows can run out of file descriptors:
+		const hashes = [];
+		for (let file of files) {
+			hashes.push(await hashFile(file));
 		}
+		return hashes;
 	}
 
 	//---------------------------------
