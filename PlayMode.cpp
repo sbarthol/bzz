@@ -12,6 +12,8 @@
 
 #include <random>
 
+int PlayMode::Cricket::seq = 0;
+
 GLuint bzz_meshes_for_lit_color_texture_program = 0;
 Load< MeshBuffer > bzz_meshes(LoadTagDefault, []() -> MeshBuffer const * {
 	MeshBuffer const *ret = new MeshBuffer(data_path("bzz.pnct"));
@@ -37,20 +39,21 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 });
 
 // https://stackoverflow.com/questions/5289613/generate-random-float-between-two-floats
-float getRngRange(float a, float b) {
+float get_rng_range(float a, float b) {
 	float random = ((float) rand()) / (float) RAND_MAX;
   float diff = b - a;
   float r = random * diff;
   return a + r;
 }
 
+
 void PlayMode::spawn_cricket() {
 	Mesh const &mesh = bzz_meshes->lookup("Cricket");
 
 	scene.transforms.emplace_back();
 	Scene::Transform *transform = &scene.transforms.back();
-	transform->position = cricket_transform->position + glm::vec3(getRngRange(-0.5,0.5), getRngRange(-0.5,0.5), 0.0);
-	transform->rotation = glm::rotate(cricket_transform->rotation, getRngRange(0.0,360.0), glm::vec3(0.0,0.0,1.0));
+	transform->position = cricket_transform->position + glm::vec3(get_rng_range(-0.5,0.5), get_rng_range(-0.5,0.5), 0.0);
+	transform->rotation = glm::angleAxis(glm::radians(get_rng_range(0.f,360.f)), glm::vec3(0.0,0.0,1.0));
 	transform->scale = glm::vec3(1.f);
 
 	scene.drawables.emplace_back(Scene::Drawable(transform));
@@ -62,19 +65,26 @@ void PlayMode::spawn_cricket() {
 	drawable.pipeline.type = mesh.type;
 	drawable.pipeline.start = mesh.start;
 	drawable.pipeline.count = mesh.count;
+
+	Crickets.push_back(Cricket(Cricket::seq++, transform));
 }
 
 PlayMode::PlayMode() : scene(*bzz_scene) {
 
 	//get pointers to leg for convenience:
 	for (auto &transform : scene.transforms) {
-		if (transform.name == "Cricket") cricket_transform = &transform;
-		cricket_transform->scale = glm::vec3(0.f);
+		if (transform.name == "Cricket") {
+			cricket_transform = &transform;
+			cricket_transform->scale = glm::vec3(0.f);
+		}
 	}
 
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
 	camera = &scene.cameras.front();
+
+	// Spawn the first cricket
+	spawn_cricket();
 }
 
 PlayMode::~PlayMode() {
@@ -155,8 +165,17 @@ void PlayMode::update(float elapsed) {
 	// Move some crickets randomly
 	{
 		const float JumpDistance = 0.1;
+		for(Cricket &cricket: Crickets) {
+			if(std::rand() % 50 == 0) {
 
+				glm::quat quat = glm::angleAxis(glm::radians(get_rng_range(-20.f,20.f)), glm::vec3(0.0,0.0,1.0));
+				cricket.transform->rotation = glm::normalize(cricket.transform->rotation * quat);
 
+				glm::vec3 dir = cricket.transform->rotation * glm::vec3(0.f, 1.f, 0.f) ;
+				dir = JumpDistance * glm::normalize(dir);
+				cricket.transform->position += dir;
+			}
+		}
 	}
 
 	//update state
