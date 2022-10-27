@@ -159,6 +159,42 @@ void PlayMode::update(float elapsed) {
 
 	}
 
+	//update state
+	{
+		//update food
+		totalFood -= numLiveCrickets * cricketEatingRate;
+		if (totalFood <= 0){
+			totalFood = 0;
+			int deathProbability = rand() % 10 + 1;
+			if (deathProbability < 7){
+				numLiveCrickets --;
+				numDeadCrickets ++;
+				if (Crickets.size() > 0){
+					Cricket c = Crickets.at(0);
+					Crickets.erase(Crickets.begin());
+					if (c.age >= c.matureAge){
+						numMatureCrickets --;
+					}else{
+						numBabyCrickets --;
+					}
+				}
+			}
+		}
+		//update crickets
+		for (size_t i  = 0; i < Crickets.size(); i++){
+			Crickets.at(i).age += .001;
+			if (Crickets.at(i).age > Crickets.at(i).matureAge){
+				numBabyCrickets --;
+				numMatureCrickets ++;
+			}
+			if (Crickets.at(i).age > Crickets.at(i).lifeSpan){
+				Crickets.erase(Crickets.begin()+i);
+				numDeadCrickets ++;
+				numMatureCrickets --;
+			}
+		}
+	}
+
 	//move camera:
 	{
 
