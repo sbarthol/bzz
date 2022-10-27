@@ -26,8 +26,14 @@ struct PlayMode : Mode {
 	} left, right, down, up;
 
 	void spawn_cricket();
-	Scene::Transform *first_cricket;
+	Scene::Transform *first_cricket; 
 	float total_elapsed = 0.0;
+	size_t numBabyCrickets = 0;
+	size_t numMatureCrickets = 0;
+	size_t numDeadCrickets = 0;
+	float totalMoney = 0;
+
+
 	
 
 	//local copy of the game scene (so code can change it during gameplay):
