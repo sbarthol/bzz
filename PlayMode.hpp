@@ -36,7 +36,7 @@ struct PlayMode : Mode {
 		int cricketID;
 		Scene::Transform *transform;
 		float lifeSpan = 5.0; // is there a constant lifespan
-		float matureAge = 1.5; //age that cricket is mature
+		float matureAge = 3.5; //age that cricket is mature
 		// or is the time of death determined by environment?
 		float age = 0.f;
 

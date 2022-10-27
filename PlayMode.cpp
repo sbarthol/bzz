@@ -156,7 +156,20 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void PlayMode::update(float elapsed) {
 
-	
+	// update crickets age and state
+	{
+		for(Cricket &cricket: Crickets) {
+			cricket.age += elapsed;
+			if(cricket.age > cricket.lifeSpan) {
+				// Todo: this does not seem to have the intended effect
+				glm::vec3 axis = glm::normalize(cricket.transform->rotation * glm::vec3(0.f, 1.f, 0.f));
+				glm:: quat turn_upside_down = glm::angleAxis(glm::radians(180.f), axis);
+				cricket.transform->rotation = glm::normalize(cricket.transform->rotation * turn_upside_down);
+			} else if (cricket.age > cricket.matureAge) {
+				cricket.transform->scale = glm::vec3(1.5f);
+			}
+		}
+	}
 
 	//spawn a new cricket
 	{
@@ -172,6 +185,9 @@ void PlayMode::update(float elapsed) {
 	{
 		const float JumpDistance = 0.1;
 		for(Cricket &cricket: Crickets) {
+			if(cricket.age > cricket.lifeSpan) {
+				continue;
+			}
 			if(std::rand() % 40 == 0) {
 
 				glm::quat quat = glm::angleAxis(glm::radians(get_rng_range(-20.f,20.f)), glm::vec3(0.0,0.0,1.0));
