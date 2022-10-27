@@ -49,9 +49,9 @@ void PlayMode::spawn_cricket() {
 
 	scene.transforms.emplace_back();
 	Scene::Transform *transform = &scene.transforms.back();
-	transform->position = first_cricket->position + glm::vec3(getRngRange(-0.5,0.5), getRngRange(-0.5,0.5), 0.0);
-	transform->rotation = glm::rotate(first_cricket->rotation, getRngRange(0.0,360.0), glm::vec3(0.0,0.0,1.0));
-	transform->scale = first_cricket->scale;
+	transform->position = cricket_transform->position + glm::vec3(getRngRange(-0.5,0.5), getRngRange(-0.5,0.5), 0.0);
+	transform->rotation = glm::rotate(cricket_transform->rotation, getRngRange(0.0,360.0), glm::vec3(0.0,0.0,1.0));
+	transform->scale = glm::vec3(1.f);
 
 	scene.drawables.emplace_back(Scene::Drawable(transform));
 	Scene::Drawable &drawable = scene.drawables.back();
@@ -68,7 +68,8 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
 
 	//get pointers to leg for convenience:
 	for (auto &transform : scene.transforms) {
-		if (transform.name == "Cricket") first_cricket = &transform;
+		if (transform.name == "Cricket") cricket_transform = &transform;
+		cricket_transform->scale = glm::vec3(0.f);
 	}
 
 	//get pointer to camera for convenience:
@@ -144,11 +145,18 @@ void PlayMode::update(float elapsed) {
 	//spawn a new cricket
 	{
 		const float CricketSpawnPeriod = 3.0;
-		total_elapsed += elapsed;
-		if (total_elapsed > CricketSpawnPeriod) {
-			total_elapsed -= CricketSpawnPeriod;
+		elapsed_since_spawn += elapsed;
+		if (elapsed_since_spawn > CricketSpawnPeriod) {
+			elapsed_since_spawn -= CricketSpawnPeriod;
 			spawn_cricket();
 		}
+	}
+
+	// Move some crickets randomly
+	{
+		const float JumpDistance = 0.1;
+
+
 	}
 
 	//move camera:
