@@ -77,6 +77,9 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
 			cricket_transform = &transform;
 			cricket_transform->scale = glm::vec3(0.f);
 		}
+		if (transform.name == "Bedding") {
+			bedding_transform = &transform;
+		}
 	}
 
 	//get pointer to camera for convenience:
@@ -85,6 +88,7 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
 
 	// Spawn the first cricket
 	spawn_cricket();
+	
 }
 
 PlayMode::~PlayMode() {
@@ -152,6 +156,8 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void PlayMode::update(float elapsed) {
 
+	
+
 	//spawn a new cricket
 	{
 		const float CricketSpawnPeriod = 3.0;
@@ -166,7 +172,7 @@ void PlayMode::update(float elapsed) {
 	{
 		const float JumpDistance = 0.1;
 		for(Cricket &cricket: Crickets) {
-			if(std::rand() % 50 == 0) {
+			if(std::rand() % 40 == 0) {
 
 				glm::quat quat = glm::angleAxis(glm::radians(get_rng_range(-20.f,20.f)), glm::vec3(0.0,0.0,1.0));
 				cricket.transform->rotation = glm::normalize(cricket.transform->rotation * quat);
@@ -174,6 +180,21 @@ void PlayMode::update(float elapsed) {
 				glm::vec3 dir = cricket.transform->rotation * glm::vec3(0.f, 1.f, 0.f) ;
 				dir = JumpDistance * glm::normalize(dir);
 				cricket.transform->position += dir;
+
+				Mesh const &mesh = bzz_meshes->lookup("Bedding");
+				glm::mat4x3 to_world = bedding_transform->make_local_to_world();
+				glm::vec3 mesh_min = to_world * glm::vec4(mesh.min, 1.f);
+				glm::vec3 mesh_max = to_world * glm::vec4(mesh.max, 1.f);
+
+				glm::vec3 &pos = cricket.transform->position;
+				const float eps = 0.2;
+				if (!(mesh_min.x + eps < pos.x && pos.x < mesh_max.x - eps && mesh_min.y + eps < pos.y && pos.y < mesh_max.y - eps)) {
+					glm::quat turn_around = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0,0.0,1.0));
+					cricket.transform->rotation = glm::normalize(cricket.transform->rotation * turn_around);
+
+					pos.x = glm::clamp(pos.x, mesh_min.x + eps, mesh_max.x - eps);
+					pos.y = glm::clamp(pos.y, mesh_min.y + eps, mesh_max.y - eps);
+				}
 			}
 		}
 	}

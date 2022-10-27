@@ -28,6 +28,7 @@ struct PlayMode : Mode {
 	// Visual
 	void spawn_cricket();
 	Scene::Transform *cricket_transform;
+	Scene::Transform *bedding_transform;
 	float elapsed_since_spawn = 0.0;
 
 	struct Cricket {
