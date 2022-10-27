@@ -163,7 +163,7 @@ void PlayMode::update(float elapsed) {
 				numDeadCrickets ++;
 				if (Crickets.size() > 0){
 					Cricket c = Crickets.at(0);
-					Crickets.pop_front();
+					Crickets.erase(Crickets.begin());
 					if (c.age >= c.matureAge){
 						numMatureCrickets --;
 					}else{
@@ -176,7 +176,7 @@ void PlayMode::update(float elapsed) {
 		for (size_t i  = 0; i < Crickets.size(); i++){
 			Crickets.at(i).age += .001;
 			if (Crickets.at(i).age > Crickets.at(i).matureAge){
-				numBabyCrickets --
+				numBabyCrickets --;
 				numMatureCrickets ++;
 			}
 			if (Crickets.at(i).age > Crickets.at(i).lifeSpan){
