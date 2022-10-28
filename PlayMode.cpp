@@ -69,6 +69,7 @@ void PlayMode::spawn_cricket() {
 	Crickets.push_back(Cricket(Cricket::seq++, transform));
 }
 
+
 PlayMode::PlayMode() : scene(*bzz_scene) {
 
 	//get pointers to leg for convenience:
@@ -183,7 +184,7 @@ void PlayMode::update(float elapsed) {
 
 	// Move some crickets randomly
 	{
-		const float JumpDistance = 0.1;
+		const float JumpDistance = 0.1f;
 		for(Cricket &cricket: Crickets) {
 			if(cricket.age > cricket.lifeSpan) {
 				continue;
@@ -203,7 +204,7 @@ void PlayMode::update(float elapsed) {
 				glm::vec3 mesh_max = to_world * glm::vec4(mesh.max, 1.f);
 
 				glm::vec3 &pos = cricket.transform->position;
-				const float eps = 0.2;
+				const float eps = 0.2f;
 				if (!(mesh_min.x + eps < pos.x && pos.x < mesh_max.x - eps && mesh_min.y + eps < pos.y && pos.y < mesh_max.y - eps)) {
 					glm::quat turn_around = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0,0.0,1.0));
 					cricket.transform->rotation = glm::normalize(cricket.transform->rotation * turn_around);
@@ -239,7 +240,7 @@ void PlayMode::update(float elapsed) {
 		}
 		//update crickets
 		for (size_t i  = 0; i < Crickets.size(); i++){
-			Crickets.at(i).age += .001;
+			Crickets.at(i).age += .001f;
 			if (Crickets.at(i).age > Crickets.at(i).matureAge){
 				numBabyCrickets --;
 				numMatureCrickets ++;
@@ -334,4 +335,27 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	GL_ERRORS();
 }
 
+template<typename T>
+void buy(T quantity, float price, T &total_quantity, float &total_money) {
+	if (total_money >= price) {
+		total_money -= price;
+		total_quantity += quantity;
+	}
+}
 
+void PlayMode::buy_food() {
+	const float unitFood = 200;
+	const float unitPrice = 10;
+
+	buy<float>(unitFood, unitPrice, totalFood, totalMoney);
+}
+
+void PlayMode::sell_mature() {
+	const float price = 20;
+
+	while (numMatureCrickets != 0) {
+		totalMoney += price;
+		numMatureCrickets --;
+		// destroy cricket
+	}
+}

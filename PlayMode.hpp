@@ -49,14 +49,16 @@ struct PlayMode : Mode {
 	std::vector<Cricket> Crickets;
 	float total_elapsed = 0.0;
 	size_t numLiveCrickets = 0;
-	float cricketEatingRate = .2;
+	float cricketEatingRate = .2f;
 	size_t numBabyCrickets = 0;
 	size_t numMatureCrickets = 0;
 	size_t numDeadCrickets = 0;
 	float totalMoney = 0;
 	float totalFood = 2e9;
 
-
+	// Buttons
+	void buy_food();
+	void sell_mature();
 	
 
 	//local copy of the game scene (so code can change it during gameplay):
