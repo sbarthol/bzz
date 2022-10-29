@@ -87,6 +87,9 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
 	camera = &scene.cameras.front();
 
+	buttons.emplace_back(glm::vec2(100,100), glm::vec2(10,10), "hello", Button_UI::BUY_FOOD);
+	buttons.emplace_back(glm::vec2(100,200), glm::vec2(10,10), "world", Button_UI::SELL_MATURE);
+
 	// Spawn the first cricket
 	spawn_cricket();
 	
@@ -134,6 +137,19 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		}
 	} else if (evt.type == SDL_MOUSEBUTTONDOWN) {
 		if (SDL_GetRelativeMouseMode() == SDL_FALSE) {
+			int x, y;
+			SDL_GetMouseState(&x, &y);
+			std::cout << x << ", " << y << std::endl;
+			for (auto &button : buttons) {
+				glm::vec2 x_range(button.anchor.x, button.anchor.x + button.dimension.x);
+				glm::vec2 y_range(button.anchor.y, button.anchor.y + button.dimension.y);
+
+				if (x >= x_range.x && x <= x_range.y &&
+					y >= y_range.x && y <= y_range.y) {
+					
+					invoke_callback(button.trigger_event);
+				}
+			}
 			SDL_SetRelativeMouseMode(SDL_TRUE);
 			return true;
 		}
@@ -335,6 +351,19 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	GL_ERRORS();
 }
 
+void PlayMode::invoke_callback(Button_UI::call_back callback) {
+	switch(callback) {
+		case Button_UI::BUY_FOOD:
+			buy_food();
+			break;
+		case Button_UI::SELL_MATURE:
+			sell_mature();
+			break;
+		default:
+			throw std::runtime_error("unrecognized callback\n");
+	}
+}
+
 template<typename T>
 void buy(T quantity, float price, T &total_quantity, float &total_money) {
 	if (total_money >= price) {
@@ -344,6 +373,7 @@ void buy(T quantity, float price, T &total_quantity, float &total_money) {
 }
 
 void PlayMode::buy_food() {
+	std::cout << "buy_food" << std::endl;
 	const float unitFood = 200;
 	const float unitPrice = 10;
 
@@ -351,6 +381,7 @@ void PlayMode::buy_food() {
 }
 
 void PlayMode::sell_mature() {
+	std::cout << "sell_mature" << std::endl;
 	const float price = 20;
 
 	while (numMatureCrickets != 0) {

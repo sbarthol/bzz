@@ -8,6 +8,22 @@
 #include <vector>
 #include <deque>
 
+struct Button_UI {
+	glm::vec2 anchor;		// upper-left corner
+	glm::vec2 dimension;	// width and height
+	std::string text;
+
+	enum call_back {
+		BUY_FOOD = 0,
+		SELL_MATURE = 1
+	};
+
+	call_back trigger_event;
+
+	Button_UI(glm::vec2 _anchor, glm::vec2 _dimension, std::string _text, call_back _trigger_event)
+	 : anchor(_anchor), dimension(_dimension), text(_text), trigger_event(_trigger_event)  {}
+};
+
 struct PlayMode : Mode {
 	PlayMode();
 	virtual ~PlayMode();
@@ -57,9 +73,10 @@ struct PlayMode : Mode {
 	float totalFood = 2e9;
 
 	// Buttons
+	std::vector<Button_UI> buttons;
+	void invoke_callback(Button_UI::call_back);
 	void buy_food();
 	void sell_mature();
-	
 
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
