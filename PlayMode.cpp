@@ -87,8 +87,8 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
 	camera = &scene.cameras.front();
 
-	buttons.emplace_back(glm::vec2(100,100), glm::vec2(10,10), "hello", Button_UI::BUY_FOOD);
-	buttons.emplace_back(glm::vec2(100,200), glm::vec2(10,10), "world", Button_UI::SELL_MATURE);
+	buttons.emplace_back(glm::vec2(100,100), glm::vec2(100, 50), "Buy Food", Button_UI::BUY_FOOD);
+	buttons.emplace_back(glm::vec2(100,200), glm::vec2(100, 50), "Sell Mature", Button_UI::SELL_MATURE);
 
 	// Spawn the first cricket
 	spawn_cricket();
@@ -142,7 +142,7 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			std::cout << x << ", " << y << std::endl;
 			for (auto &button : buttons) {
 				glm::vec2 x_range(button.anchor.x, button.anchor.x + button.dimension.x);
-				glm::vec2 y_range(button.anchor.y, button.anchor.y + button.dimension.y);
+				glm::vec2 y_range(button.anchor.y - button.dimension.y, button.anchor.y);
 
 				if (x >= x_range.x && x <= x_range.y &&
 					y >= y_range.x && y <= y_range.y) {
@@ -347,6 +347,9 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + + 0.1f * H + ofs, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+
+		for (auto &button : buttons)
+			button.draw_button(lines);
 	}
 	GL_ERRORS();
 }
@@ -389,4 +392,21 @@ void PlayMode::sell_mature() {
 		numMatureCrickets --;
 		// destroy cricket
 	}
+}
+
+void Button_UI::draw_button(DrawLines &lines) {
+	// hard coded: should change in future
+	const uint16_t width = 1280;
+	const uint16_t height = 720;
+	const float aspect = (float)width / (float)height;
+
+	const float H = 0.09f;
+
+	float screen_x = anchor.x / width * 2 - 1;
+	screen_x *= aspect;
+	float screen_y = (height - anchor.y) / height * 2 - 1;
+	lines.draw_text(text,
+	glm::vec3(screen_x, screen_y, 0.0f),
+	glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+	glm::u8vec4(0xff, 0xff, 0xff, 0xff));
 }

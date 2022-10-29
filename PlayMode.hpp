@@ -2,6 +2,7 @@
 
 #include "Scene.hpp"
 #include "Sound.hpp"
+#include "DrawLines.hpp"
 
 #include <glm/glm.hpp>
 
@@ -22,6 +23,8 @@ struct Button_UI {
 
 	Button_UI(glm::vec2 _anchor, glm::vec2 _dimension, std::string _text, call_back _trigger_event)
 	 : anchor(_anchor), dimension(_dimension), text(_text), trigger_event(_trigger_event)  {}
+
+	void draw_button(DrawLines &lines);
 };
 
 struct PlayMode : Mode {
