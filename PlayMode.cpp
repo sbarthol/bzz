@@ -67,6 +67,8 @@ void PlayMode::spawn_cricket() {
 	drawable.pipeline.count = mesh.count;
 
 	Crickets.push_back(Cricket(Cricket::seq++, transform));
+
+	numBabyCrickets += 1;
 }
 
 
@@ -88,7 +90,8 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
 	camera = &scene.cameras.front();
 
 	buttons.emplace_back(glm::vec2(100,100), glm::vec2(100, 50), "Buy Food", Button_UI::BUY_FOOD);
-	buttons.emplace_back(glm::vec2(100,200), glm::vec2(100, 50), "Sell Mature", Button_UI::SELL_MATURE);
+	buttons.emplace_back(glm::vec2(100,200), glm::vec2(100, 50), "Buy Egg", Button_UI::BUY_EGG);
+	buttons.emplace_back(glm::vec2(100,300), glm::vec2(100, 50), "Sell Mature", Button_UI::SELL_MATURE);
 
 	// Spawn the first cricket
 	spawn_cricket();
@@ -247,7 +250,7 @@ void PlayMode::update(float elapsed) {
 					Crickets.erase(Crickets.begin());
 					// Todo: also temove from list of drawables
 					if (c.age >= c.matureAge){
-						numMatureCrickets -;
+						numMatureCrickets --;
 					}else{
 						numBabyCrickets --;
 					}
@@ -338,6 +341,28 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		));
 
 		constexpr float H = 0.09f;
+
+		lines.draw_text("Food: " + std::to_string((int)totalFood),
+			glm::vec3(aspect - 0.8f, 1.0f - 0.30f, 0.0),
+			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+
+		lines.draw_text("Money: " + std::to_string((int)totalMoney),
+			glm::vec3(aspect - 0.8f, 1.0f - 0.45f, 0.0),
+			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+
+		lines.draw_text("Baby Crickets: " + std::to_string(numBabyCrickets),
+			glm::vec3(aspect - 0.8f, 1.0f - 0.60f, 0.0),
+			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+
+		lines.draw_text("Mature Crickets: " + std::to_string(numMatureCrickets),
+			glm::vec3(aspect - 0.8f, 1.0f - 0.75f, 0.0),
+			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+
+
 		lines.draw_text("Mouse motion rotates camera; WASD moves; escape ungrabs mouse",
 			glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
@@ -358,6 +383,9 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 	switch(callback) {
 		case Button_UI::BUY_FOOD:
 			buy_food();
+			break;
+		case Button_UI::BUY_EGG:
+			buy_eggs();
 			break;
 		case Button_UI::SELL_MATURE:
 			sell_mature();
@@ -383,6 +411,18 @@ void PlayMode::buy_food() {
 	buy<float>(unitFood, unitPrice, totalFood, totalMoney);
 }
 
+void PlayMode::buy_eggs() {
+	std::cout << "buy_eggs" << std::endl;
+	const size_t unitEggs = 10;
+	const float unitPrice = 200;
+
+	if (totalMoney >= unitPrice) {
+		for (int i = 0; i < unitEggs; i++)
+			spawn_cricket();
+		totalMoney -= unitPrice;
+	}
+}
+
 void PlayMode::sell_mature() {
 	std::cout << "sell_mature" << std::endl;
 	const float price = 20;
@@ -395,7 +435,7 @@ void PlayMode::sell_mature() {
 }
 
 void Button_UI::draw_button(DrawLines &lines) {
-	// hard coded: should change in future
+	// hard coded: should change in the future
 	const uint16_t width = 1280;
 	const uint16_t height = 720;
 	const float aspect = (float)width / (float)height;
@@ -408,5 +448,5 @@ void Button_UI::draw_button(DrawLines &lines) {
 	lines.draw_text(text,
 	glm::vec3(screen_x, screen_y, 0.0f),
 	glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-	glm::u8vec4(0xff, 0xff, 0xff, 0xff));
+	glm::u8vec4(0x00, 0x00, 0x00, 0x00));
 }

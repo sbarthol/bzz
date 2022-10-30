@@ -16,7 +16,8 @@ struct Button_UI {
 
 	enum call_back {
 		BUY_FOOD = 0,
-		SELL_MATURE = 1
+		SELL_MATURE = 1,
+		BUY_EGG
 	};
 
 	call_back trigger_event;
@@ -79,6 +80,7 @@ struct PlayMode : Mode {
 	std::vector<Button_UI> buttons;
 	void invoke_callback(Button_UI::call_back);
 	void buy_food();
+	void buy_eggs();
 	void sell_mature();
 
 	//local copy of the game scene (so code can change it during gameplay):
