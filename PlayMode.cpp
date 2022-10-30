@@ -101,10 +101,7 @@ PlayMode::~PlayMode() {
 bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
 
 	if (evt.type == SDL_KEYDOWN) {
-		if (evt.key.keysym.sym == SDLK_ESCAPE) {
-			SDL_SetRelativeMouseMode(SDL_FALSE);
-			return true;
-		} else if (evt.key.keysym.sym == SDLK_a) {
+		if (evt.key.keysym.sym == SDLK_a) {
 			left.downs += 1;
 			left.pressed = true;
 			return true;
@@ -136,37 +133,21 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			return true;
 		}
 	} else if (evt.type == SDL_MOUSEBUTTONDOWN) {
-		if (SDL_GetRelativeMouseMode() == SDL_FALSE) {
-			int x, y;
-			SDL_GetMouseState(&x, &y);
-			std::cout << x << ", " << y << std::endl;
-			for (auto &button : buttons) {
-				glm::vec2 x_range(button.anchor.x, button.anchor.x + button.dimension.x);
-				glm::vec2 y_range(button.anchor.y - button.dimension.y, button.anchor.y);
+		int x, y;
+		SDL_GetMouseState(&x, &y);
+		std::cout << x << ", " << y << std::endl;
+		for (auto &button : buttons) {
+			glm::vec2 x_range(button.anchor.x, button.anchor.x + button.dimension.x);
+			glm::vec2 y_range(button.anchor.y - button.dimension.y, button.anchor.y);
 
-				if (x >= x_range.x && x <= x_range.y &&
+			if (x >= x_range.x && x <= x_range.y &&
 					y >= y_range.x && y <= y_range.y) {
 					
-					invoke_callback(button.trigger_event);
-				}
+				invoke_callback(button.trigger_event);
 			}
-			SDL_SetRelativeMouseMode(SDL_TRUE);
-			return true;
 		}
-	} else if (evt.type == SDL_MOUSEMOTION) {
-		if (SDL_GetRelativeMouseMode() == SDL_TRUE) {
-			glm::vec2 motion = glm::vec2(
-				evt.motion.xrel / float(window_size.y),
-				-evt.motion.yrel / float(window_size.y)
-			);
-			camera->transform->rotation = glm::normalize(
-				camera->transform->rotation
-				* glm::angleAxis(-motion.x * camera->fovy, glm::vec3(0.0f, 1.0f, 0.0f))
-				* glm::angleAxis(motion.y * camera->fovy, glm::vec3(1.0f, 0.0f, 0.0f))
-			);
-			return true;
-		}
-	}
+		return true;
+	} 
 
 	return false;
 }
@@ -246,7 +227,7 @@ void PlayMode::update(float elapsed) {
 					Crickets.erase(Crickets.begin());
 					// Todo: also temove from list of drawables
 					if (c.age >= c.matureAge){
-						numMatureCrickets -;
+						numMatureCrickets --;
 					}else{
 						numBabyCrickets --;
 					}
@@ -273,7 +254,7 @@ void PlayMode::update(float elapsed) {
 	{
 
 		//combine inputs into a move:
-		constexpr float PlayerSpeed = 30.0f;
+		constexpr float PlayerSpeed = 10.0f;
 		glm::vec2 move = glm::vec2(0.0f);
 		if (left.pressed && !right.pressed) move.x =-1.0f;
 		if (!left.pressed && right.pressed) move.x = 1.0f;
@@ -283,12 +264,8 @@ void PlayMode::update(float elapsed) {
 		//make it so that moving diagonally doesn't go faster:
 		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;
 
-		glm::mat4x3 frame = camera->transform->make_local_to_parent();
-		glm::vec3 frame_right = frame[0];
-		//glm::vec3 up = frame[1];
-		glm::vec3 frame_forward = -frame[2];
-
-		camera->transform->position += move.x * frame_right + move.y * frame_forward;
+		camera->transform->position.x += move.x;
+		camera->transform->position.y += move.y;
 	}
 
 	{ //update listener to camera position:
