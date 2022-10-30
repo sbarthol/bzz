@@ -251,12 +251,11 @@ void PlayMode::update(float elapsed) {
 				}
 			}
 		}
-		//update crickets
+		//update counts
 		numBabyCrickets = 0;
 		numMatureCrickets = 0;
 		numDeadCrickets = 0;
 		for(Cricket &cricket: Crickets) {
-			cricket.age += elapsed;
 			if (cricket.is_mature()){
 				numMatureCrickets ++;
 			}
