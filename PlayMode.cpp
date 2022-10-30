@@ -409,7 +409,7 @@ void PlayMode::buy_eggs() {
 	const float unitPrice = 200;
 
 	if (totalMoney >= unitPrice) {
-		for (int i = 0; i < unitEggs; i++)
+		for (size_t i = 0; i < unitEggs; i++)
 			spawn_cricket();
 		totalMoney -= unitPrice;
 	}
