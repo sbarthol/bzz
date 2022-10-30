@@ -178,7 +178,6 @@ void PlayMode::update(float elapsed) {
 		for(Cricket &cricket: Crickets) {
 			cricket.age += elapsed;
 			if(cricket.age > cricket.lifeSpan) {
-				// Todo: this does not seem to have the intended effect
 				glm::vec3 axis = glm::normalize(glm::vec3(0.f, 1.f, 0.f));
 				glm:: quat turn_upside_down = glm::angleAxis(glm::radians(180.f), axis);
 				cricket.transform->rotation = glm::normalize(cricket.transform->rotation * turn_upside_down);
