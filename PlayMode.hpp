@@ -55,10 +55,12 @@ struct PlayMode : Mode {
 
 		int cricketID;
 		Scene::Transform *transform;
-		float lifeSpan = 5.0; // is there a constant lifespan
-		float matureAge = 3.5; //age that cricket is mature
+		float lifeSpan = 500.0; // is there a constant lifespan
+		float matureAge = 100.5; //age that cricket is mature
 		// or is the time of death determined by environment?
 		float age = 0.f;
+		bool isDead = false;
+		bool isMature = false;
 
 		static int seq;
 
@@ -69,7 +71,7 @@ struct PlayMode : Mode {
 	std::vector<Cricket> Crickets;
 	float total_elapsed = 0.0;
 	size_t numLiveCrickets = 0;
-	float cricketEatingRate = .2f;
+	float cricketEatingRate = .0f;
 	size_t numBabyCrickets = 0;
 	size_t numMatureCrickets = 0;
 	size_t numDeadCrickets = 0;

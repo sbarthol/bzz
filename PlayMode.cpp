@@ -182,22 +182,14 @@ void PlayMode::update(float elapsed) {
 			cricket.age += elapsed;
 			if(cricket.age > cricket.lifeSpan) {
 				// Todo: this does not seem to have the intended effect
+				cricket.isDead = true;
 				glm::vec3 axis = glm::normalize(glm::vec3(0.f, 1.f, 0.f));
 				glm:: quat turn_upside_down = glm::angleAxis(glm::radians(180.f), axis);
 				cricket.transform->rotation = glm::normalize(cricket.transform->rotation * turn_upside_down);
 			} else if (cricket.age > cricket.matureAge) {
 				cricket.transform->scale = glm::vec3(1.5f);
+				cricket.isMature = true;
 			}
-		}
-	}
-
-	//spawn a new cricket
-	{
-		const float CricketSpawnPeriod = 3.0;
-		elapsed_since_spawn += elapsed;
-		if (elapsed_since_spawn > CricketSpawnPeriod) {
-			elapsed_since_spawn -= CricketSpawnPeriod;
-			spawn_cricket();
 		}
 	}
 
@@ -246,7 +238,8 @@ void PlayMode::update(float elapsed) {
 				numLiveCrickets --;
 				numDeadCrickets ++;
 				if (Crickets.size() > 0){
-					Cricket c = Crickets.at(0);
+					Cricket &c = Crickets.at(0);
+					c.isDead = true;
 					Crickets.erase(Crickets.begin());
 					// Todo: also temove from list of drawables
 					if (c.age >= c.matureAge){
@@ -258,14 +251,13 @@ void PlayMode::update(float elapsed) {
 			}
 		}
 		//update crickets
-		for (size_t i  = 0; i < Crickets.size(); i++){
-			Crickets.at(i).age += elapsed;
-			if (Crickets.at(i).age > Crickets.at(i).matureAge){
+		for(Cricket &cricket: Crickets) {
+			cricket.age += elapsed;
+			if (!cricket.isMature && cricket.age > cricket.matureAge){
 				numBabyCrickets --;
 				numMatureCrickets ++;
 			}
-			if (Crickets.at(i).age > Crickets.at(i).lifeSpan){
-				Crickets.erase(Crickets.begin()+i);
+			if (!cricket.isDead && cricket.age > cricket.lifeSpan){
 				// Todo: also temove from list of drawables
 				numDeadCrickets ++;
 				numMatureCrickets --;
