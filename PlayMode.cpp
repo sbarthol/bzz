@@ -74,6 +74,7 @@ void PlayMode::spawn_cricket() {
 	Cricket cricket = Cricket(Cricket::seq++, transform);
 	Crickets.push_back(cricket);
 
+	// Todo: update spawn area
 	transform->position = cricket_transform->position + glm::vec3(get_rng_range(-0.5,0.5), get_rng_range(-0.5,0.5), 0.0);
 	transform->rotation = glm::angleAxis(glm::radians(get_rng_range(0.f,360.f)), glm::vec3(0.0,0.0,1.0));
 	transform->scale = glm::vec3(1.f);
