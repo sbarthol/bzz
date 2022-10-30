@@ -45,18 +45,13 @@ struct PlayMode : Mode {
 		uint8_t pressed = 0;
 	} left, right, down, up;
 
-	// Visual
-	void spawn_cricket();
-	Scene::Transform *cricket_transform;
-	Scene::Transform *bedding_transform;
-	float elapsed_since_spawn = 0.0;
 
 	struct Cricket {
 
 		int cricketID;
 		Scene::Transform *transform;
-		float lifeSpan = 500.0; // is there a constant lifespan
-		float matureAge = 100.5; //age that cricket is mature
+		float lifeSpan = 100.f; // is there a constant lifespan
+		float matureAge = 20.f; //age that cricket is mature
 		bool starved = false;
 		// or is the time of death determined by environment?
 		float age = 0.f;
@@ -78,15 +73,22 @@ struct PlayMode : Mode {
 		Cricket(int cricketID_, Scene::Transform *transform_ ): cricketID(cricketID_), transform(transform_)  {}
 	};
 
+	// Visual
+	void spawn_cricket();
+	void kill_cricket(Cricket &cricket);
+	Scene::Transform *cricket_transform;
+	Scene::Transform *bedding_transform;
+	float elapsed_since_spawn = 0.0;
+
 	Scene::Transform *first_cricket; 
 	std::vector<Cricket> Crickets;
-	float total_elapsed = 0.0;
-	float cricketEatingRate = .0f;
+	float total_elapsed = 0.f;
+	float cricketEatingRate = 0.01f;
 	size_t numBabyCrickets = 0;
 	size_t numMatureCrickets = 0;
 	size_t numDeadCrickets = 0;
-	float totalMoney = 1000;
-	float totalFood = 2e9;
+	float totalMoney = 1000.f;
+	float totalFood = 200.f;
 
 	// Buttons
 	std::vector<Button_UI> buttons;

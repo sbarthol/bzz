@@ -95,6 +95,12 @@ void PlayMode::spawn_cricket() {
 	numBabyCrickets += 1;
 }
 
+void PlayMode::kill_cricket(Cricket &cricket) {
+	glm::vec3 axis = glm::normalize(glm::vec3(0.f, 1.f, 0.f));
+	glm:: quat turn_upside_down = glm::angleAxis(glm::radians(180.f), axis);
+	cricket.transform->rotation = glm::normalize(cricket.transform->rotation * turn_upside_down);
+}
+
 
 PlayMode::PlayMode() : scene(*bzz_scene) {
 
@@ -194,9 +200,7 @@ void PlayMode::update(float elapsed) {
 			}
 			cricket.age += elapsed;
 			if(cricket.is_dead()) {
-				glm::vec3 axis = glm::normalize(glm::vec3(0.f, 1.f, 0.f));
-				glm:: quat turn_upside_down = glm::angleAxis(glm::radians(180.f), axis);
-				cricket.transform->rotation = glm::normalize(cricket.transform->rotation * turn_upside_down);
+				kill_cricket(cricket);
 			} else if (cricket.is_mature()) {
 				cricket.transform->scale = glm::vec3(1.5f);
 			}
@@ -256,22 +260,25 @@ void PlayMode::update(float elapsed) {
 		assert(numBabyCrickets + numMatureCrickets + numDeadCrickets == Crickets.size());
 	}
 
-	//update state
+	//update food and starvation
 	{
-		//update food
-		// Todo: why does 1 cricket have 6/10 chances of dying when food is running low?
 		// Todo: do adults eat more than babies ?
-		totalFood -= (numBabyCrickets + numMatureCrickets) * cricketEatingRate;
-		if (totalFood <= 0){
-			totalFood = 0;
-			int deathProbability = rand() % 10 + 1;
-			if (deathProbability < 7){
-				if (Crickets.size() > 0){
-					Cricket &c = Crickets.at(0);
-					c.starved = true;
+		// Todo: do not eat at every frame
+		if (totalFood == 0.f){
+			auto is_starving = [](){
+				return rand() % 10 + 1 < 7;
+			};
+			for( Cricket &cricket: Crickets) {
+				if(cricket.is_dead()) {
+					continue;
+				}
+				cricket.starved = cricket.starved || is_starving();
+				if(cricket.is_dead()) {
+					kill_cricket(cricket);
 				}
 			}
 		}
+		totalFood = std::max(0.f, totalFood - (numBabyCrickets + numMatureCrickets) * cricketEatingRate);
 	}
 
 	//move camera:
