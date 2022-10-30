@@ -272,7 +272,7 @@ void PlayMode::update(float elapsed) {
 				if(cricket.is_dead()) {
 					continue;
 				}
-				cricket.starved = cricket.starved || is_starving();
+				cricket.starved = is_starving();
 				if(cricket.is_dead()) {
 					kill_cricket(cricket);
 				}
