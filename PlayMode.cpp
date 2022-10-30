@@ -239,6 +239,7 @@ void PlayMode::update(float elapsed) {
 	//update state
 	{
 		//update food
+		// Todo: why does 1 cricket have 6/10 chances of dying when food is running low?
 		totalFood -= numLiveCrickets * cricketEatingRate;
 		if (totalFood <= 0){
 			totalFood = 0;
