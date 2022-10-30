@@ -236,22 +236,8 @@ void PlayMode::update(float elapsed) {
 		}
 	}
 
-	//update state
+	//update counts
 	{
-		//update food
-		// Todo: why does 1 cricket have 6/10 chances of dying when food is running low?
-		totalFood -= numLiveCrickets * cricketEatingRate;
-		if (totalFood <= 0){
-			totalFood = 0;
-			int deathProbability = rand() % 10 + 1;
-			if (deathProbability < 7){
-				if (Crickets.size() > 0){
-					Cricket &c = Crickets.at(0);
-					c.starved = true;
-				}
-			}
-		}
-		//update counts
 		numBabyCrickets = 0;
 		numMatureCrickets = 0;
 		numDeadCrickets = 0;
@@ -267,6 +253,24 @@ void PlayMode::update(float elapsed) {
 			}
 		}
 		assert(numBabyCrickets + numMatureCrickets + numDeadCrickets == Crickets.size());
+	}
+
+	//update state
+	{
+		//update food
+		// Todo: why does 1 cricket have 6/10 chances of dying when food is running low?
+		// Todo: do adults eat more than babies ?
+		totalFood -= (numBabyCrickets + numMatureCrickets) * cricketEatingRate;
+		if (totalFood <= 0){
+			totalFood = 0;
+			int deathProbability = rand() % 10 + 1;
+			if (deathProbability < 7){
+				if (Crickets.size() > 0){
+					Cricket &c = Crickets.at(0);
+					c.starved = true;
+				}
+			}
+		}
 	}
 
 	//move camera:

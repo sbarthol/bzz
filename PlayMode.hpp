@@ -81,7 +81,6 @@ struct PlayMode : Mode {
 	Scene::Transform *first_cricket; 
 	std::vector<Cricket> Crickets;
 	float total_elapsed = 0.0;
-	size_t numLiveCrickets = 0;
 	float cricketEatingRate = .0f;
 	size_t numBabyCrickets = 0;
 	size_t numMatureCrickets = 0;
