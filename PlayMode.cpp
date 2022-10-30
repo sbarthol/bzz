@@ -247,7 +247,7 @@ void PlayMode::update(float elapsed) {
 					Crickets.erase(Crickets.begin());
 					// Todo: also temove from list of drawables
 					if (c.age >= c.matureAge){
-						numMatureCrickets --;
+						numMatureCrickets -;
 					}else{
 						numBabyCrickets --;
 					}
@@ -256,7 +256,7 @@ void PlayMode::update(float elapsed) {
 		}
 		//update crickets
 		for (size_t i  = 0; i < Crickets.size(); i++){
-			Crickets.at(i).age += .001f;
+			Crickets.at(i).age += elapsed;
 			if (Crickets.at(i).age > Crickets.at(i).matureAge){
 				numBabyCrickets --;
 				numMatureCrickets ++;
