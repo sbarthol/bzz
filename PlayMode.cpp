@@ -46,6 +46,22 @@ float get_rng_range(float a, float b) {
   return a + r;
 }
 
+Load< Sound::Sample > chirping_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("chirping.wav"));
+});
+
+Load< Sound::Sample > click_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("click.wav"));
+});
+
+Load< Sound::Sample > cash_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("cash.wav"));
+});
+
+Load< Sound::Sample > background_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("background_music.wav"));
+});
+
 
 void PlayMode::spawn_cricket() {
 	Mesh const &mesh = bzz_meshes->lookup("Cricket");
@@ -89,6 +105,11 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
 
 	buttons.emplace_back(glm::vec2(100,100), glm::vec2(100, 50), "Buy Food", Button_UI::BUY_FOOD);
 	buttons.emplace_back(glm::vec2(100,200), glm::vec2(100, 50), "Sell Mature", Button_UI::SELL_MATURE);
+
+	// Loop chirping sound and background music
+	Sound::loop(*chirping_sample, 1.0f, 0.0f);
+	Sound::loop(*background_sample, 1.0f, 0.0f);
+
 
 	// Spawn the first cricket
 	spawn_cricket();
@@ -331,11 +352,13 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 }
 
 void PlayMode::invoke_callback(Button_UI::call_back callback) {
+	Sound::play(*click_sample, 100.0f, 0.0f);
 	switch(callback) {
 		case Button_UI::BUY_FOOD:
 			buy_food();
 			break;
 		case Button_UI::SELL_MATURE:
+			Sound::play(*cash_sample, 1.0f, 0.0f);
 			sell_mature();
 			break;
 		default:
