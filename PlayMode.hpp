@@ -57,12 +57,23 @@ struct PlayMode : Mode {
 		Scene::Transform *transform;
 		float lifeSpan = 500.0; // is there a constant lifespan
 		float matureAge = 100.5; //age that cricket is mature
+		bool starved = false;
 		// or is the time of death determined by environment?
 		float age = 0.f;
-		bool isDead = false;
-		bool isMature = false;
 
 		static int seq;
+
+		bool is_mature() {
+			return !is_dead() && age >= matureAge;
+		}
+
+		bool is_dead() {
+			return starved || age >= lifeSpan;
+		}
+
+		bool is_baby() {
+			return !is_dead() && age < matureAge;
+		}
 
 		Cricket(int cricketID_, Scene::Transform *transform_ ): cricketID(cricketID_), transform(transform_)  {}
 	};
@@ -75,7 +86,7 @@ struct PlayMode : Mode {
 	size_t numBabyCrickets = 0;
 	size_t numMatureCrickets = 0;
 	size_t numDeadCrickets = 0;
-	float totalMoney = 0;
+	float totalMoney = 1000;
 	float totalFood = 2e9;
 
 	// Buttons

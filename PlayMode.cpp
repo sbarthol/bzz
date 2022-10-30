@@ -188,16 +188,16 @@ void PlayMode::update(float elapsed) {
 	// update crickets age and state
 	{
 		for(Cricket &cricket: Crickets) {
+			if (cricket.is_dead()) {
+				continue;
+			}
 			cricket.age += elapsed;
-			if(cricket.age > cricket.lifeSpan) {
-				// Todo: this does not seem to have the intended effect
-				cricket.isDead = true;
+			if(cricket.is_dead()) {
 				glm::vec3 axis = glm::normalize(glm::vec3(0.f, 1.f, 0.f));
 				glm:: quat turn_upside_down = glm::angleAxis(glm::radians(180.f), axis);
 				cricket.transform->rotation = glm::normalize(cricket.transform->rotation * turn_upside_down);
-			} else if (cricket.age > cricket.matureAge) {
+			} else if (cricket.is_mature()) {
 				cricket.transform->scale = glm::vec3(1.5f);
-				cricket.isMature = true;
 			}
 		}
 	}
@@ -206,7 +206,7 @@ void PlayMode::update(float elapsed) {
 	{
 		const float JumpDistance = 0.1f;
 		for(Cricket &cricket: Crickets) {
-			if(cricket.age > cricket.lifeSpan) {
+			if(cricket.is_dead()) {
 				continue;
 			}
 			if(std::rand() % 40 == 0) {
@@ -244,34 +244,29 @@ void PlayMode::update(float elapsed) {
 			totalFood = 0;
 			int deathProbability = rand() % 10 + 1;
 			if (deathProbability < 7){
-				numLiveCrickets --;
-				numDeadCrickets ++;
 				if (Crickets.size() > 0){
 					Cricket &c = Crickets.at(0);
-					c.isDead = true;
-					Crickets.erase(Crickets.begin());
-					// Todo: also temove from list of drawables
-					if (c.age >= c.matureAge){
-						numMatureCrickets --;
-					}else{
-						numBabyCrickets --;
-					}
+					c.starved = true;
 				}
 			}
 		}
 		//update crickets
+		numBabyCrickets = 0;
+		numMatureCrickets = 0;
+		numDeadCrickets = 0;
 		for(Cricket &cricket: Crickets) {
 			cricket.age += elapsed;
-			if (!cricket.isMature && cricket.age > cricket.matureAge){
-				numBabyCrickets --;
+			if (cricket.is_mature()){
 				numMatureCrickets ++;
 			}
-			if (!cricket.isDead && cricket.age > cricket.lifeSpan){
-				// Todo: also temove from list of drawables
-				numDeadCrickets ++;
-				numMatureCrickets --;
+			if (cricket.is_dead()) {
+				numDeadCrickets++;
+			}
+			if(cricket.is_baby()) {
+				numBabyCrickets++;
 			}
 		}
+		assert(numBabyCrickets + numMatureCrickets + numDeadCrickets == Crickets.size());
 	}
 
 	//move camera:
@@ -428,11 +423,14 @@ void PlayMode::sell_mature() {
 
 	std::unordered_set<std::string> mature_cricket_names;
 	std::vector<Cricket> mature_crickets;
+	std::vector<Cricket> non_mature_crickets;
 
 	for(Cricket &cricket: Crickets) {
-		if(cricket.age > cricket.matureAge) {
+		if(cricket.is_mature()) {
 			mature_crickets.push_back(cricket);
 			mature_cricket_names.insert("Cricket_" + std::to_string(cricket.cricketID));
+		}else{
+			non_mature_crickets.push_back(cricket);
 		}
 	}
 
@@ -440,6 +438,7 @@ void PlayMode::sell_mature() {
 	
 	totalMoney += numMatureCrickets * price;
 	numMatureCrickets = 0;
+	Crickets = std::move(non_mature_crickets);
 
 	auto it = scene.drawables.begin();
 	while(it != scene.drawables.end()) {
