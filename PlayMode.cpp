@@ -11,6 +11,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <random>
+#include <unordered_set>
 
 int PlayMode::Cricket::seq = 0;
 
@@ -64,13 +65,19 @@ Load< Sound::Sample > background_sample(LoadTagDefault, []() -> Sound::Sample co
 
 
 void PlayMode::spawn_cricket() {
+
 	Mesh const &mesh = bzz_meshes->lookup("Cricket");
 
 	scene.transforms.emplace_back();
+
 	Scene::Transform *transform = &scene.transforms.back();
+	Cricket cricket = Cricket(Cricket::seq++, transform);
+	Crickets.push_back(cricket);
+
 	transform->position = cricket_transform->position + glm::vec3(get_rng_range(-0.5,0.5), get_rng_range(-0.5,0.5), 0.0);
 	transform->rotation = glm::angleAxis(glm::radians(get_rng_range(0.f,360.f)), glm::vec3(0.0,0.0,1.0));
 	transform->scale = glm::vec3(1.f);
+	transform->name = "Cricket_" + std::to_string(cricket.cricketID);
 
 	scene.drawables.emplace_back(Scene::Drawable(transform));
 	Scene::Drawable &drawable = scene.drawables.back();
@@ -82,7 +89,7 @@ void PlayMode::spawn_cricket() {
 	drawable.pipeline.start = mesh.start;
 	drawable.pipeline.count = mesh.count;
 
-	Crickets.push_back(Cricket(Cricket::seq++, transform));
+	
 
 	numBabyCrickets += 1;
 }
@@ -353,7 +360,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
 
 
-		lines.draw_text("Mouse motion rotates camera; WASD moves; escape ungrabs mouse",
+		lines.draw_text("WASD moves the camera",
 			glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
@@ -419,10 +426,29 @@ void PlayMode::sell_mature() {
 	std::cout << "sell_mature" << std::endl;
 	const float price = 20;
 
-	while (numMatureCrickets != 0) {
-		totalMoney += price;
-		numMatureCrickets --;
-		// destroy cricket
+	std::unordered_set<std::string> mature_cricket_names;
+	std::vector<Cricket> mature_crickets;
+
+	for(Cricket &cricket: Crickets) {
+		if(cricket.age > cricket.matureAge) {
+			mature_crickets.push_back(cricket);
+			mature_cricket_names.insert("Cricket_" + std::to_string(cricket.cricketID));
+		}
+	}
+
+	assert(mature_crickets.size() == numMatureCrickets);
+	
+	totalMoney += numMatureCrickets * price;
+	numMatureCrickets = 0;
+
+	auto it = scene.drawables.begin();
+	while(it != scene.drawables.end()) {
+		Scene::Drawable dr = *it;
+		if ( mature_cricket_names.count(dr.transform->name) ) {
+			it = scene.drawables.erase(it);
+		} else {
+			it++;
+		}
 	}
 }
 
