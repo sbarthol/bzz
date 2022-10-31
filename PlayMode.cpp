@@ -126,10 +126,6 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
 	// Loop chirping sound and background music
 	Sound::loop(*chirping_sample, 1.0f, 0.0f);
 	Sound::loop(*background_sample, 1.0f, 0.0f);
-
-
-	// Spawn the first cricket
-	spawn_cricket();
 	
 }
 
