@@ -71,9 +71,11 @@ Scene::Transform* PlayMode::spawn_strawberry() {
 
 	Scene::Transform *transform = &scene.transforms.back();
 
-	transform->position = glm::vec3(get_rng_range(bedding_min.x,bedding_max.x), get_rng_range(bedding_min.y,bedding_max.y), strawberry_transform->position.z);
+	const float eps = 0.2f;
+	transform->position = glm::vec3(get_rng_range(bedding_min.x + eps, bedding_max.x - eps), get_rng_range(bedding_min.y + eps, bedding_max.y - eps), strawberry_transform->position.z);
 	transform->rotation = glm::angleAxis(glm::radians(get_rng_range(0.f,360.f)), glm::vec3(0.0,0.0,1.0));
 	transform->scale = glm::vec3(1.f);
+	transform->name = "Strawberry";
 
 	scene.drawables.emplace_back(Scene::Drawable(transform));
 	Scene::Drawable &drawable = scene.drawables.back();
@@ -223,7 +225,7 @@ void PlayMode::update(float elapsed) {
 	{
 		int n_strawberries = (totalFood + 199.f) / 200.f;
 		while(strawberry_transforms.size() > n_strawberries) {
-			strawberry_transforms.pop_back();
+			strawberry_transforms.pop_front();
 		}
 		while(strawberry_transforms.size() < n_strawberries) {
 			strawberry_transforms.push_back(spawn_strawberry());

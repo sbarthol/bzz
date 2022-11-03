@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <deque>
+#include <list>
 
 struct Button_UI {
 	glm::vec2 anchor;		// upper-left corner
@@ -82,7 +83,7 @@ struct PlayMode : Mode {
 	Scene::Transform *strawberry_transform;
 	Scene::Transform *bedding_transform;
 	float elapsed_since_spawn = 0.0;
-	std::vector<Scene::Transform*> strawberry_transforms;
+	std::list<Scene::Transform*> strawberry_transforms;
 	Scene::Transform* spawn_strawberry();
 	glm::vec3 bedding_min;
 	glm::vec3 bedding_max;
