@@ -63,10 +63,36 @@ Load< Sound::Sample > background_sample(LoadTagDefault, []() -> Sound::Sample co
 	return new Sound::Sample(data_path("background_music.wav"));
 });
 
+Scene::Transform* PlayMode::spawn_strawberry() {
+
+	Mesh const &mesh = bzz_meshes->lookup("Strawberry");
+
+	scene.transforms.emplace_back();
+
+	Scene::Transform *transform = &scene.transforms.back();
+
+	const float eps = 0.2f;
+	transform->position = glm::vec3(get_rng_range(bedding_min.x + eps, bedding_max.x - eps), get_rng_range(bedding_min.y + eps, bedding_max.y - eps), strawberry_transform->position.z);
+	transform->rotation = glm::angleAxis(glm::radians(get_rng_range(0.f,360.f)), glm::vec3(0.0,0.0,1.0));
+	transform->scale = glm::vec3(1.f);
+	transform->name = "Strawberry";
+
+	scene.drawables.emplace_back(Scene::Drawable(transform));
+	Scene::Drawable &drawable = scene.drawables.back();
+
+	drawable.pipeline = lit_color_texture_program_pipeline;
+
+	drawable.pipeline.vao = bzz_meshes_for_lit_color_texture_program;
+	drawable.pipeline.type = mesh.type;
+	drawable.pipeline.start = mesh.start;
+	drawable.pipeline.count = mesh.count;
+
+	return transform;
+}
 
 void PlayMode::spawn_cricket() {
 
-	Mesh const &mesh = bzz_meshes->lookup("Cricket");
+	Mesh const &mesh = bzz_meshes->lookup("BabyCricket");
 
 	scene.transforms.emplace_back();
 
@@ -74,8 +100,7 @@ void PlayMode::spawn_cricket() {
 	Cricket cricket = Cricket(Cricket::seq++, transform);
 	Crickets.push_back(cricket);
 
-	// Todo: update spawn area
-	transform->position = cricket_transform->position + glm::vec3(get_rng_range(-0.5,0.5), get_rng_range(-0.5,0.5), 0.0);
+	transform->position = glm::vec3(get_rng_range(bedding_min.x,bedding_max.x), get_rng_range(bedding_min.y,bedding_max.y), baby_cricket_transform->position.z);
 	transform->rotation = glm::angleAxis(glm::radians(get_rng_range(0.f,360.f)), glm::vec3(0.0,0.0,1.0));
 	transform->scale = glm::vec3(1.f);
 	transform->name = "Cricket_" + std::to_string(cricket.cricketID);
@@ -90,9 +115,6 @@ void PlayMode::spawn_cricket() {
 	drawable.pipeline.start = mesh.start;
 	drawable.pipeline.count = mesh.count;
 
-	
-
-	numBabyCrickets += 1;
 }
 
 void PlayMode::kill_cricket(Cricket &cricket) {
@@ -104,11 +126,18 @@ void PlayMode::kill_cricket(Cricket &cricket) {
 
 PlayMode::PlayMode() : scene(*bzz_scene) {
 
-	//get pointers to leg for convenience:
 	for (auto &transform : scene.transforms) {
-		if (transform.name == "Cricket") {
-			cricket_transform = &transform;
-			cricket_transform->scale = glm::vec3(0.f);
+		if (transform.name == "AdultCricket") {
+			adult_cricket_transform = &transform;
+			adult_cricket_transform->scale = glm::vec3(0.f);
+		}
+		if (transform.name == "BabyCricket") {
+			baby_cricket_transform = &transform;
+			baby_cricket_transform->scale = glm::vec3(0.f);
+		}
+		if (transform.name == "Strawberry") {
+			strawberry_transform = &transform;
+			strawberry_transform->scale = glm::vec3(0.f);
 		}
 		if (transform.name == "Bedding") {
 			bedding_transform = &transform;
@@ -126,7 +155,11 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
 	// Loop chirping sound and background music
 	Sound::loop(*chirping_sample, 1.0f, 0.0f);
 	Sound::loop(*background_sample, 1.0f, 0.0f);
-	
+
+	Mesh const &mesh = bzz_meshes->lookup("Bedding");
+	glm::mat4x3 to_world = bedding_transform->make_local_to_world();
+	bedding_min = to_world * glm::vec4(mesh.min, 1.f);
+	bedding_max = to_world * glm::vec4(mesh.max, 1.f);
 }
 
 PlayMode::~PlayMode() {
@@ -188,6 +221,26 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void PlayMode::update(float elapsed) {
 
+	// update food visuals
+	{
+		int n_strawberries = (totalFood + 199.f) / 200.f;
+		while(strawberry_transforms.size() > n_strawberries) {
+			strawberry_transforms.pop_front();
+		}
+		while(strawberry_transforms.size() < n_strawberries) {
+			strawberry_transforms.push_back(spawn_strawberry());
+		}
+		auto it = scene.drawables.begin();
+		while(it != scene.drawables.end()) {
+			Scene::Drawable dr = *it;
+			if ( it->transform->name == "Strawberry" && std::find(strawberry_transforms.begin(), strawberry_transforms.end(), it->transform) == strawberry_transforms.end() ) {
+				it = scene.drawables.erase(it);
+			} else {
+				it++;
+			}
+		}
+	}
+
 	// update crickets age and state
 	{
 		for(Cricket &cricket: Crickets) {
@@ -198,7 +251,7 @@ void PlayMode::update(float elapsed) {
 			if(cricket.is_dead()) {
 				kill_cricket(cricket);
 			} else if (cricket.is_mature()) {
-				cricket.transform->scale = glm::vec3(1.5f);
+				mature_cricket(cricket);
 			}
 		}
 	}
@@ -219,19 +272,15 @@ void PlayMode::update(float elapsed) {
 				dir = JumpDistance * glm::normalize(dir);
 				cricket.transform->position += dir;
 
-				Mesh const &mesh = bzz_meshes->lookup("Bedding");
-				glm::mat4x3 to_world = bedding_transform->make_local_to_world();
-				glm::vec3 mesh_min = to_world * glm::vec4(mesh.min, 1.f);
-				glm::vec3 mesh_max = to_world * glm::vec4(mesh.max, 1.f);
-
 				glm::vec3 &pos = cricket.transform->position;
 				const float eps = 0.2f;
-				if (!(mesh_min.x + eps < pos.x && pos.x < mesh_max.x - eps && mesh_min.y + eps < pos.y && pos.y < mesh_max.y - eps)) {
+
+				if (!(bedding_min.x + eps < pos.x && pos.x < bedding_max.x - eps && bedding_min.y + eps < pos.y && pos.y < bedding_max.y - eps)) {
 					glm::quat turn_around = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0,0.0,1.0));
 					cricket.transform->rotation = glm::normalize(cricket.transform->rotation * turn_around);
 
-					pos.x = glm::clamp(pos.x, mesh_min.x + eps, mesh_max.x - eps);
-					pos.y = glm::clamp(pos.y, mesh_min.y + eps, mesh_max.y - eps);
+					pos.x = glm::clamp(pos.x, bedding_min.x + eps, bedding_max.x - eps);
+					pos.y = glm::clamp(pos.y, bedding_min.y + eps, bedding_max.y - eps);
 				}
 			}
 		}
@@ -422,6 +471,18 @@ void PlayMode::buy_eggs() {
 		for (size_t i = 0; i < unitEggs; i++)
 			spawn_cricket();
 		totalMoney -= unitPrice;
+	}
+}
+
+void PlayMode::mature_cricket(Cricket &cricket) {
+	Mesh const &mesh = bzz_meshes->lookup("AdultCricket");
+	for(Scene::Drawable &drawable: scene.drawables) {
+		if(drawable.transform->name == "Cricket_" + std::to_string(cricket.cricketID)) {
+			drawable.pipeline.type = mesh.type;
+			drawable.pipeline.start = mesh.start;
+			drawable.pipeline.count = mesh.count;
+			break;
+		}
 	}
 }
 
