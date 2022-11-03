@@ -79,8 +79,13 @@ struct PlayMode : Mode {
 	void mature_cricket(Cricket &cricket);
 	Scene::Transform *adult_cricket_transform;
 	Scene::Transform *baby_cricket_transform;
+	Scene::Transform *strawberry_transform;
 	Scene::Transform *bedding_transform;
 	float elapsed_since_spawn = 0.0;
+	std::vector<Scene::Transform*> strawberry_transforms;
+	Scene::Transform* spawn_strawberry();
+	glm::vec3 bedding_min;
+	glm::vec3 bedding_max;
 
 	Scene::Transform *first_cricket; 
 	std::vector<Cricket> Crickets;
