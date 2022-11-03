@@ -262,7 +262,7 @@ void PlayMode::update(float elapsed) {
 		// Todo: do not eat at every frame
 		if (totalFood == 0.f){
 			auto is_starving = [](){
-				return rand() % 10 + 1 < 7;
+				return rand() % 1000 + 1 < 6;
 			};
 			for( Cricket &cricket: Crickets) {
 				if(cricket.is_dead()) {

@@ -88,7 +88,7 @@ struct PlayMode : Mode {
 	size_t numMatureCrickets = 0;
 	size_t numDeadCrickets = 0;
 	float totalMoney = 1000.f;
-	float totalFood = 200.f;
+	float totalFood = 20.f;
 
 	// Buttons
 	std::vector<Button_UI> buttons;
