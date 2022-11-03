@@ -268,6 +268,17 @@ void PlayMode::update(float elapsed) {
 				glm::quat quat = glm::angleAxis(glm::radians(get_rng_range(-20.f,20.f)), glm::vec3(0.0,0.0,1.0));
 				cricket.transform->rotation = glm::normalize(cricket.transform->rotation * quat);
 
+				Scene::Transform *closest_strawberry = nullptr;
+				for(Scene::Transform *transform: strawberry_transforms) {
+					if(closest_strawberry == nullptr || 
+						glm::length(cricket.transform->position - transform->position) < glm::length(cricket.transform->position - closest_strawberry->position)) {
+						closest_strawberry = transform;
+					}
+				}
+				if(closest_strawberry != nullptr && glm::length(cricket.transform->position - closest_strawberry->position) < 0.4f) {
+					continue;
+				}
+
 				glm::vec3 dir = cricket.transform->rotation * glm::vec3(0.f, 1.f, 0.f) ;
 				dir = JumpDistance * glm::normalize(dir);
 				cricket.transform->position += dir;
