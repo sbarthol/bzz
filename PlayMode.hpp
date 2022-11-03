@@ -76,7 +76,9 @@ struct PlayMode : Mode {
 	// Visual
 	void spawn_cricket();
 	void kill_cricket(Cricket &cricket);
-	Scene::Transform *cricket_transform;
+	void mature_cricket(Cricket &cricket);
+	Scene::Transform *adult_cricket_transform;
+	Scene::Transform *baby_cricket_transform;
 	Scene::Transform *bedding_transform;
 	float elapsed_since_spawn = 0.0;
 

@@ -66,7 +66,7 @@ Load< Sound::Sample > background_sample(LoadTagDefault, []() -> Sound::Sample co
 
 void PlayMode::spawn_cricket() {
 
-	Mesh const &mesh = bzz_meshes->lookup("Cricket");
+	Mesh const &mesh = bzz_meshes->lookup("BabyCricket");
 
 	scene.transforms.emplace_back();
 
@@ -75,7 +75,7 @@ void PlayMode::spawn_cricket() {
 	Crickets.push_back(cricket);
 
 	// Todo: update spawn area
-	transform->position = cricket_transform->position + glm::vec3(get_rng_range(-0.5,0.5), get_rng_range(-0.5,0.5), 0.0);
+	transform->position = baby_cricket_transform->position + glm::vec3(get_rng_range(-0.5,0.5), get_rng_range(-0.5,0.5), 0.0);
 	transform->rotation = glm::angleAxis(glm::radians(get_rng_range(0.f,360.f)), glm::vec3(0.0,0.0,1.0));
 	transform->scale = glm::vec3(1.f);
 	transform->name = "Cricket_" + std::to_string(cricket.cricketID);
@@ -104,11 +104,14 @@ void PlayMode::kill_cricket(Cricket &cricket) {
 
 PlayMode::PlayMode() : scene(*bzz_scene) {
 
-	//get pointers to leg for convenience:
 	for (auto &transform : scene.transforms) {
-		if (transform.name == "Cricket") {
-			cricket_transform = &transform;
-			cricket_transform->scale = glm::vec3(0.f);
+		if (transform.name == "AdultCricket") {
+			adult_cricket_transform = &transform;
+			adult_cricket_transform->scale = glm::vec3(0.f);
+		}
+		if (transform.name == "BabyCricket") {
+			baby_cricket_transform = &transform;
+			baby_cricket_transform->scale = glm::vec3(0.f);
 		}
 		if (transform.name == "Bedding") {
 			bedding_transform = &transform;
@@ -198,7 +201,7 @@ void PlayMode::update(float elapsed) {
 			if(cricket.is_dead()) {
 				kill_cricket(cricket);
 			} else if (cricket.is_mature()) {
-				cricket.transform->scale = glm::vec3(1.5f);
+				mature_cricket(cricket);
 			}
 		}
 	}
@@ -422,6 +425,18 @@ void PlayMode::buy_eggs() {
 		for (size_t i = 0; i < unitEggs; i++)
 			spawn_cricket();
 		totalMoney -= unitPrice;
+	}
+}
+
+void PlayMode::mature_cricket(Cricket &cricket) {
+	Mesh const &mesh = bzz_meshes->lookup("AdultCricket");
+	for(Scene::Drawable &drawable: scene.drawables) {
+		if(drawable.transform->name == "Cricket_" + std::to_string(cricket.cricketID)) {
+			drawable.pipeline.type = mesh.type;
+			drawable.pipeline.start = mesh.start;
+			drawable.pipeline.count = mesh.count;
+			break;
+		}
 	}
 }
 
