@@ -71,7 +71,7 @@ Scene::Transform* PlayMode::spawn_strawberry() {
 
 	Scene::Transform *transform = &scene.transforms.back();
 
-	transform->position = glm::vec3(get_rng_range(bedding_min.x,bedding_max.x), get_rng_range(bedding_min.y,bedding_max.y), 0.0);
+	transform->position = glm::vec3(get_rng_range(bedding_min.x,bedding_max.x), get_rng_range(bedding_min.y,bedding_max.y), strawberry_transform->position.z);
 	transform->rotation = glm::angleAxis(glm::radians(get_rng_range(0.f,360.f)), glm::vec3(0.0,0.0,1.0));
 	transform->scale = glm::vec3(1.f);
 
@@ -98,7 +98,7 @@ void PlayMode::spawn_cricket() {
 	Cricket cricket = Cricket(Cricket::seq++, transform);
 	Crickets.push_back(cricket);
 
-	transform->position = glm::vec3(get_rng_range(bedding_min.x,bedding_max.x), get_rng_range(bedding_min.y,bedding_max.y), 0.0);
+	transform->position = glm::vec3(get_rng_range(bedding_min.x,bedding_max.x), get_rng_range(bedding_min.y,bedding_max.y), baby_cricket_transform->position.z);
 	transform->rotation = glm::angleAxis(glm::radians(get_rng_range(0.f,360.f)), glm::vec3(0.0,0.0,1.0));
 	transform->scale = glm::vec3(1.f);
 	transform->name = "Cricket_" + std::to_string(cricket.cricketID);
@@ -155,9 +155,9 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
 	Sound::loop(*background_sample, 1.0f, 0.0f);
 
 	Mesh const &mesh = bzz_meshes->lookup("Bedding");
-	
-	bedding_min = mesh.min;
-	bedding_max = mesh.max;
+	glm::mat4x3 to_world = bedding_transform->make_local_to_world();
+	bedding_min = to_world * glm::vec4(mesh.min, 1.f);
+	bedding_max = to_world * glm::vec4(mesh.max, 1.f);
 }
 
 PlayMode::~PlayMode() {
@@ -273,16 +273,12 @@ void PlayMode::update(float elapsed) {
 				glm::vec3 &pos = cricket.transform->position;
 				const float eps = 0.2f;
 
-				glm::mat4x3 to_world = bedding_transform->make_local_to_world();
-				glm::vec3 world_bedding_min = to_world * glm::vec4(bedding_min, 1.f);
-				glm::vec3 world_bedding_max = to_world * glm::vec4(bedding_max, 1.f);
-
-				if (!(world_bedding_min.x + eps < pos.x && pos.x < world_bedding_max.x - eps && world_bedding_min.y + eps < pos.y && pos.y < world_bedding_max.y - eps)) {
+				if (!(bedding_min.x + eps < pos.x && pos.x < bedding_max.x - eps && bedding_min.y + eps < pos.y && pos.y < bedding_max.y - eps)) {
 					glm::quat turn_around = glm::angleAxis(glm::radians(180.f), glm::vec3(0.0,0.0,1.0));
 					cricket.transform->rotation = glm::normalize(cricket.transform->rotation * turn_around);
 
-					pos.x = glm::clamp(pos.x, world_bedding_min.x + eps, world_bedding_max.x - eps);
-					pos.y = glm::clamp(pos.y, world_bedding_min.y + eps, world_bedding_max.y - eps);
+					pos.x = glm::clamp(pos.x, bedding_min.x + eps, bedding_max.x - eps);
+					pos.y = glm::clamp(pos.y, bedding_min.y + eps, bedding_max.y - eps);
 				}
 			}
 		}
