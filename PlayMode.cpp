@@ -516,6 +516,7 @@ void PlayMode::draw_filled_rect(glm::vec2 lower_left, glm::vec2 upper_right, glm
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	glUseProgram(0);
+	glDisable(GL_BLEND);
 
 	GL_ERRORS();
 }
