@@ -160,6 +160,44 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
 	glm::mat4x3 to_world = bedding_transform->make_local_to_world();
 	bedding_min = to_world * glm::vec4(mesh.min, 1.f);
 	bedding_max = to_world * glm::vec4(mesh.max, 1.f);
+
+	const char *VERTEX_SHADER = ""
+        "#version 330\n"
+        "in vec2 position;\n"
+        "void main(void) {\n"
+        "    gl_Position = vec4(position.xy, 0, 1);\n"
+        "}\n";
+
+
+	const char *FRAGMENT_SHADER = ""
+        "#version 330\n"
+				"out vec4 fragColor;\n"
+        "void main(void) {\n"
+        "    fragColor = vec4(0.4, 0.8, 0.2, 0.5);\n"
+        "}\n";
+
+	GLuint vs{0}, fs{0};
+	vs = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vs, 1, &VERTEX_SHADER, 0);
+  glCompileShader(vs);
+	GL_ERRORS();
+
+  fs = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fs, 1, &FRAGMENT_SHADER, 0);
+  glCompileShader(fs);
+	GL_ERRORS();
+
+  rect_program= glCreateProgram();
+  glAttachShader(rect_program, vs);
+  glAttachShader(rect_program, fs);
+  glLinkProgram(rect_program);
+	GL_ERRORS();
+
+	glGenBuffers(1, &vbo);
+	GL_ERRORS();
+	glGenVertexArrays(1, &vao);
+	GL_ERRORS();
+
 }
 
 PlayMode::~PlayMode() {
@@ -436,6 +474,44 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		for (auto &button : buttons)
 			button.draw_button(lines);
 	}
+
+	
+
+
+	printf("program = %d\n", rect_program);
+	glUseProgram(rect_program);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	GL_ERRORS();
+
+
+	GLfloat rect_data[] =
+{
+-0.5f, -0.5f,
+0.5f, -0.5f,
+0.5f, 0.5f,
+-0.5f, 0.5f
+};
+
+
+printf("vbo = %d\n", vao);
+
+glBindBuffer(GL_ARRAY_BUFFER, vbo);
+GL_ERRORS();
+glBufferData(GL_ARRAY_BUFFER, sizeof(rect_data), rect_data, GL_STATIC_DRAW);
+GL_ERRORS();
+
+printf("vao = %d\n", vao);
+glBindVertexArray(vao);
+GL_ERRORS();
+glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+GL_ERRORS();
+glEnableVertexAttribArray(0);
+GL_ERRORS();
+glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+glUseProgram(0);
+
+
 	GL_ERRORS();
 }
 

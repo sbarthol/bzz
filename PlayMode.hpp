@@ -88,6 +88,9 @@ struct PlayMode : Mode {
 	glm::vec3 bedding_min;
 	glm::vec3 bedding_max;
 
+	GLuint vbo, vao;
+	GLuint rect_program;
+
 	Scene::Transform *first_cricket; 
 	std::vector<Cricket> Crickets;
 	float total_elapsed = 0.f;
