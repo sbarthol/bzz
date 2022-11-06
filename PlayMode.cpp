@@ -469,21 +469,24 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 		for (auto &button : buttons)
 			button.draw_button(lines);
+
 	}
+	draw_filled_rect(glm::vec2(-0.5,-0.5f), glm::vec2(0.5f, 0.5f), glm::vec4(1.f, 0.f, 0.f, 0.5f));
 
-	
+}
 
+void PlayMode::draw_filled_rect(glm::vec2 lower_left, glm::vec2 upper_right, glm::vec4 color) {
 
 	glUseProgram(rect_program);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	GL_ERRORS();
 
-	GLfloat fill_color[] = {0.2, 0.8, 0.6, 0.5};
-GLuint fill_color_loc = glGetUniformLocation(rect_program, "fillColor");
-GL_ERRORS();
-glUniform4fv(fill_color_loc, 1, fill_color);
-GL_ERRORS();
+	GLfloat fill_color[] = {color[0], color[1], color[2], color[3]};
+	GLuint fill_color_loc = glGetUniformLocation(rect_program, "fillColor");
+	GL_ERRORS();
+	glUniform4fv(fill_color_loc, 1, fill_color);
+	GL_ERRORS();
 
 	GLuint vbo = 0, vao = 0;
 	glGenBuffers(1, &vbo);
@@ -491,34 +494,28 @@ GL_ERRORS();
 	glGenVertexArrays(1, &vao);
 	GL_ERRORS();
 
-
 	GLfloat rect_data[] =
-{
--0.5f, -0.5f,
-0.5f, -0.5f,
-0.5f, 0.5f,
--0.5f, 0.5f
-};
+	{
+		lower_left.x, lower_left.y,
+		upper_right.x, lower_left.y,
+		upper_right.x, upper_right.y,
+		lower_left.x, upper_right.y
+	};
 
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	GL_ERRORS();
+	glBufferData(GL_ARRAY_BUFFER, sizeof(rect_data), rect_data, GL_STATIC_DRAW);
+	GL_ERRORS();
 
+	glBindVertexArray(vao);
+	GL_ERRORS();
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	GL_ERRORS();
+	glEnableVertexAttribArray(0);
+	GL_ERRORS();
 
-
-
-glBindBuffer(GL_ARRAY_BUFFER, vbo);
-GL_ERRORS();
-glBufferData(GL_ARRAY_BUFFER, sizeof(rect_data), rect_data, GL_STATIC_DRAW);
-GL_ERRORS();
-
-glBindVertexArray(vao);
-GL_ERRORS();
-glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
-GL_ERRORS();
-glEnableVertexAttribArray(0);
-GL_ERRORS();
-
-glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-glUseProgram(0);
-
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glUseProgram(0);
 
 	GL_ERRORS();
 }
