@@ -101,9 +101,9 @@ struct PlayMode : Mode {
 	// Buttons
 	std::vector<Button_UI> buttons;
 	void invoke_callback(Button_UI::call_back);
-	void buy_food();
-	void buy_eggs();
-	void sell_mature();
+	bool buy_food();
+	bool buy_eggs();
+	bool sell_mature();
 
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;

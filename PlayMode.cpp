@@ -63,6 +63,11 @@ Load< Sound::Sample > background_sample(LoadTagDefault, []() -> Sound::Sample co
 	return new Sound::Sample(data_path("background_music.wav"));
 });
 
+Load< Sound::Sample > click_error_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("access_denied.wav"));
+});
+
+
 Scene::Transform* PlayMode::spawn_strawberry() {
 
 	Mesh const &mesh = bzz_meshes->lookup("Strawberry");
@@ -223,7 +228,7 @@ void PlayMode::update(float elapsed) {
 
 	// update food visuals
 	{
-		int n_strawberries = (totalFood + 199.f) / 200.f;
+		size_t n_strawberries = (totalFood + 199.f) / 200.f;
 		while(strawberry_transforms.size() > n_strawberries) {
 			strawberry_transforms.pop_front();
 		}
@@ -440,49 +445,61 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 }
 
 void PlayMode::invoke_callback(Button_UI::call_back callback) {
-	Sound::play(*click_sample, 100.0f, 0.0f);
+	bool clickSuccess = true;
 	switch(callback) {
 		case Button_UI::BUY_FOOD:
-			buy_food();
+			clickSuccess = buy_food();
 			break;
 		case Button_UI::BUY_EGG:
-			buy_eggs();
+			clickSuccess = buy_eggs();
 			break;
-		case Button_UI::SELL_MATURE:
-			Sound::play(*cash_sample, 1.0f, 0.0f);
-			sell_mature();
+		case Button_UI::SELL_MATURE:	
+			clickSuccess = sell_mature();
+			if (clickSuccess)
+				Sound::play(*cash_sample, 1.0f, 0.0f);
 			break;
 		default:
 			throw std::runtime_error("unrecognized callback\n");
 	}
+	if (clickSuccess)
+		Sound::play(*click_sample, 25.0f, 0.0f);
+	else
+		Sound::play(*click_error_sample, 1.0f, 0.0f);
 }
 
+
 template<typename T>
-void buy(T quantity, float price, T &total_quantity, float &total_money) {
+bool buy(T quantity, float price, T &total_quantity, float &total_money) {
 	if (total_money >= price) {
 		total_money -= price;
 		total_quantity += quantity;
+		return true;
 	}
+	return false;
 }
 
-void PlayMode::buy_food() {
+bool PlayMode::buy_food() {
 	std::cout << "buy_food" << std::endl;
 	const float unitFood = 200;
 	const float unitPrice = 10;
 
-	buy<float>(unitFood, unitPrice, totalFood, totalMoney);
+	return buy<float>(unitFood, unitPrice, totalFood, totalMoney);
 }
 
-void PlayMode::buy_eggs() {
+bool PlayMode::buy_eggs() {
 	std::cout << "buy_eggs" << std::endl;
 	const size_t unitEggs = 10;
 	const float unitPrice = 200;
+	bool success = false;
 
 	if (totalMoney >= unitPrice) {
 		for (size_t i = 0; i < unitEggs; i++)
 			spawn_cricket();
 		totalMoney -= unitPrice;
+		success = true;
 	}
+
+	return success;
 }
 
 void PlayMode::mature_cricket(Cricket &cricket) {
@@ -497,13 +514,14 @@ void PlayMode::mature_cricket(Cricket &cricket) {
 	}
 }
 
-void PlayMode::sell_mature() {
+bool PlayMode::sell_mature() {
 	std::cout << "sell_mature" << std::endl;
 	const float price = 20;
 
 	std::unordered_set<std::string> mature_cricket_names;
 	std::vector<Cricket> mature_crickets;
 	std::vector<Cricket> non_mature_crickets;
+	bool success = false;
 
 	for(Cricket &cricket: Crickets) {
 		if(cricket.is_mature()) {
@@ -515,6 +533,10 @@ void PlayMode::sell_mature() {
 	}
 
 	assert(mature_crickets.size() == numMatureCrickets);
+
+	if (numMatureCrickets > 0) {
+		success = true;
+	}
 	
 	totalMoney += numMatureCrickets * price;
 	numMatureCrickets = 0;
@@ -529,6 +551,8 @@ void PlayMode::sell_mature() {
 			it++;
 		}
 	}
+
+	return success;
 }
 
 void Button_UI::draw_button(DrawLines &lines) {
