@@ -88,8 +88,9 @@ struct PlayMode : Mode {
 	glm::vec3 bedding_min;
 	glm::vec3 bedding_max;
 
-	GLuint vbo, vao;
+	// Filled rectangles
 	GLuint rect_program;
+	void draw_filled_rect(glm::vec2 lower_left, glm::vec2 upper_right, glm::vec4 color);
 
 	Scene::Transform *first_cricket; 
 	std::vector<Cricket> Crickets;

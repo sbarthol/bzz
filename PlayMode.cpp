@@ -171,9 +171,10 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
 
 	const char *FRAGMENT_SHADER = ""
         "#version 330\n"
+				"uniform vec4 fillColor;\n"
 				"out vec4 fragColor;\n"
         "void main(void) {\n"
-        "    fragColor = vec4(0.4, 0.8, 0.2, 0.5);\n"
+        "    fragColor = fillColor;\n"
         "}\n";
 
 	GLuint vs{0}, fs{0};
@@ -191,11 +192,6 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
   glAttachShader(rect_program, vs);
   glAttachShader(rect_program, fs);
   glLinkProgram(rect_program);
-	GL_ERRORS();
-
-	glGenBuffers(1, &vbo);
-	GL_ERRORS();
-	glGenVertexArrays(1, &vao);
 	GL_ERRORS();
 
 }
@@ -478,10 +474,21 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	
 
 
-	printf("program = %d\n", rect_program);
 	glUseProgram(rect_program);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	GL_ERRORS();
+
+	GLfloat fill_color[] = {0.2, 0.8, 0.6, 0.5};
+GLuint fill_color_loc = glGetUniformLocation(rect_program, "fillColor");
+GL_ERRORS();
+glUniform4fv(fill_color_loc, 1, fill_color);
+GL_ERRORS();
+
+	GLuint vbo = 0, vao = 0;
+	glGenBuffers(1, &vbo);
+	GL_ERRORS();
+	glGenVertexArrays(1, &vao);
 	GL_ERRORS();
 
 
@@ -494,20 +501,21 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 };
 
 
-printf("vbo = %d\n", vao);
+
+
 
 glBindBuffer(GL_ARRAY_BUFFER, vbo);
 GL_ERRORS();
 glBufferData(GL_ARRAY_BUFFER, sizeof(rect_data), rect_data, GL_STATIC_DRAW);
 GL_ERRORS();
 
-printf("vao = %d\n", vao);
 glBindVertexArray(vao);
 GL_ERRORS();
 glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 GL_ERRORS();
 glEnableVertexAttribArray(0);
 GL_ERRORS();
+
 glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 glUseProgram(0);
 
