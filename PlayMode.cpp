@@ -422,12 +422,22 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		));
 
 		constexpr float H = 0.09f;
-
-		lines.draw_text("Food: " + std::to_string((int)totalFood),
-			glm::vec3(aspect - 0.8f, 1.0f - 0.30f, 0.0),
-			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
-
+		if (totalFood <= 0){
+			lines.draw_text("Food: " + std::to_string((int)totalFood),
+				glm::vec3(aspect - 0.8f, 1.0f - 0.30f, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+				glm::u8vec4(0xEE, 0x22, 0x22, 0x00));
+			lines.draw_text("Crickets are starving.",
+				glm::vec3(aspect - 0.8f, 1.0f - 0.35f, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H/2, 0.0f),
+				glm::u8vec4(0xff, 0x11, 0x11, 0x00));
+		}else
+		{
+			lines.draw_text("Food: " + std::to_string((int)totalFood),
+				glm::vec3(aspect - 0.8f, 1.0f - 0.30f, 0.0),
+				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+				glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+		}
 		lines.draw_text("Money: " + std::to_string((int)totalMoney),
 			glm::vec3(aspect - 0.8f, 1.0f - 0.45f, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
@@ -453,16 +463,11 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
 		if (numDeadCrickets > 0){
 			lines.draw_text("Dead crickets are spreading disease.",
-			glm::vec3(aspect -2.f, -1.0 + + 0.1f * H + ofs, 0.0),
+			glm::vec3(aspect -2.f, -1.0 + 0.1f * H + ofs, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-			glm::u8vec4(0xff, 0x10, 0x10, 0x00));
+			glm::u8vec4(0xff, 0xff, 0xff, 0xff));
 		}
-		else if (totalFood <= 0){
-			lines.draw_text("Crickets are starving.",
-			glm::vec3(aspect - 1.f + ofs, -1.0 + + 0.1f * H + ofs, 0.0),
-			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-			glm::u8vec4(0xff, 0x11, 0x11, 0x00));
-		}
+		
 
 		for (auto &button : buttons)
 			button.draw_button(lines);
