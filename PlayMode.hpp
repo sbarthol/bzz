@@ -9,6 +9,8 @@
 #include <vector>
 #include <deque>
 #include <list>
+#include <chrono>
+
 
 struct Button_UI {
 	glm::vec2 anchor;		// upper-left corner
@@ -27,6 +29,20 @@ struct Button_UI {
 	 : anchor(_anchor), dimension(_dimension), text(_text), trigger_event(_trigger_event)  {}
 
 	void draw_button(DrawLines &lines);
+};
+
+struct Popup_UI {
+	glm::vec2 anchor;
+	std::string text;
+	glm::u8vec4 color;
+
+	float duration;
+	std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
+
+	Popup_UI(glm::vec2 _anchor, std::string _text, glm::u8vec4 _color, float _duration) 
+	 : anchor(_anchor), text(_text), color(_color), duration(_duration), start_time(std::chrono::high_resolution_clock::now()) {}
+
+	void draw(DrawLines &lines);
 };
 
 struct PlayMode : Mode {
@@ -107,6 +123,8 @@ struct PlayMode : Mode {
 	bool buy_food();
 	bool buy_eggs();
 	bool sell_mature();
+
+	std::vector<Popup_UI> popups;
 
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;

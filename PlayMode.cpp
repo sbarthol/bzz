@@ -103,6 +103,8 @@ void PlayMode::spawn_cricket() {
 
 	Scene::Transform *transform = &scene.transforms.back();
 	Cricket cricket = Cricket(Cricket::seq++, transform);
+	// TODO remove!!
+	cricket.age = cricket.matureAge;
 	Crickets.push_back(cricket);
 
 	transform->position = glm::vec3(get_rng_range(bedding_min.x,bedding_max.x), get_rng_range(bedding_min.y,bedding_max.y), baby_cricket_transform->position.z);
@@ -456,6 +458,19 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 		for (auto &button : buttons)
 			button.draw_button(lines);
+		
+		auto popup = popups.begin();
+		while(popup != popups.end()) {
+			auto current_time = std::chrono::high_resolution_clock::now();
+			float time_elapsed = std::chrono::duration< float >(current_time - popup->start_time).count();
+			if (time_elapsed < popup->duration) {
+				popup->draw(lines);
+				popup++;
+			} else {
+				popup = popups.erase(popup);
+			}
+		}
+			
 	}
 	GL_ERRORS();
 }
@@ -554,7 +569,8 @@ bool PlayMode::sell_mature() {
 		success = true;
 	}
 	
-	totalMoney += numMatureCrickets * price;
+	float profit = numMatureCrickets * price;
+	totalMoney += profit;
 	numMatureCrickets = 0;
 	Crickets = std::move(non_mature_crickets);
 
@@ -566,6 +582,12 @@ bool PlayMode::sell_mature() {
 		} else {
 			it++;
 		}
+	}
+
+	if (success) {
+		// glm::u8vec4(0x00, 0x00, 0x00, 0x00)
+		
+		popups.emplace_back(glm::vec2(235,300), "+$" + std::to_string(int(profit)), glm::u8vec4(0x38, 0x66, 0x41, 0x00), 0.75);
 	}
 
 	return success;
@@ -586,4 +608,23 @@ void Button_UI::draw_button(DrawLines &lines) {
 	glm::vec3(screen_x, screen_y, 0.0f),
 	glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 	glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+}
+
+void Popup_UI::draw(DrawLines &lines) {
+	// hard coded: should change in the future
+	const uint16_t width = 1280;
+	const uint16_t height = 720;
+	const float aspect = (float)width / (float)height;
+
+	const float H = 0.09f;
+
+	float screen_x = anchor.x / width * 2 - 1;
+	screen_x *= aspect;
+	float screen_y = (height - anchor.y) / height * 2 - 1;
+	lines.draw_text(text,
+	glm::vec3(screen_x, screen_y, 0.0f),
+	glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+	color);
+
+	anchor.x += 0.5;
 }
