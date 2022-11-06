@@ -91,6 +91,12 @@ struct PlayMode : Mode {
 	// Filled rectangles
 	GLuint rect_program;
 	void draw_filled_rect(glm::vec2 lower_left, glm::vec2 upper_right, glm::vec4 color);
+	
+	// Notification
+	void show_notification(std::string text);
+	void hide_notification();
+	bool notification_active = false;
+	std::vector<std::string> notification_text;
 
 	Scene::Transform *first_cricket; 
 	std::vector<Cricket> Crickets;
