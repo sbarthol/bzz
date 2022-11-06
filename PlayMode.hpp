@@ -98,6 +98,9 @@ struct PlayMode : Mode {
 	float totalMoney = 1000.f;
 	float totalFood = 20.f;
 
+	// Sound
+	std::shared_ptr< Sound::PlayingSample > chirping_loop;
+
 	// Buttons
 	std::vector<Button_UI> buttons;
 	void invoke_callback(Button_UI::call_back);

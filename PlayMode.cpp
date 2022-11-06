@@ -158,7 +158,8 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
 	buttons.emplace_back(glm::vec2(100,300), glm::vec2(100, 50), "Sell Mature", Button_UI::SELL_MATURE);
 
 	// Loop chirping sound and background music
-	Sound::loop(*chirping_sample, 1.0f, 0.0f);
+	// chirping_loop = Sound::loop(*chirping_sample, 1.0f, 0.0f);
+	// chirping_loop.
 	Sound::loop(*background_sample, 1.0f, 0.0f);
 
 	Mesh const &mesh = bzz_meshes->lookup("Bedding");
@@ -319,6 +320,21 @@ void PlayMode::update(float elapsed) {
 			}
 		}
 		assert(numBabyCrickets + numMatureCrickets + numDeadCrickets == Crickets.size());
+	}
+
+	// Set sounds
+	{
+		// Stop / start chirping sounds if no crickets
+		if (numBabyCrickets > 0 || numMatureCrickets > 0) {
+			if (chirping_loop == NULL) {
+				chirping_loop = Sound::loop(*chirping_sample, 1.0f, 0.0f);
+			}
+		} else {
+			if (chirping_loop != NULL) {
+				chirping_loop->stop();
+				chirping_loop = NULL;
+			}
+		}
 	}
 
 	//update food and starvation
