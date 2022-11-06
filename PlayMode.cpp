@@ -160,6 +160,42 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
 	glm::mat4x3 to_world = bedding_transform->make_local_to_world();
 	bedding_min = to_world * glm::vec4(mesh.min, 1.f);
 	bedding_max = to_world * glm::vec4(mesh.max, 1.f);
+
+	const char *VERTEX_SHADER = ""
+        "#version 330\n"
+        "in vec2 position;\n"
+        "void main(void) {\n"
+        "    gl_Position = vec4(position.xy, 0, 1);\n"
+        "}\n";
+
+
+	const char *FRAGMENT_SHADER = ""
+        "#version 330\n"
+				"uniform vec4 fillColor;\n"
+				"out vec4 fragColor;\n"
+        "void main(void) {\n"
+        "    fragColor = fillColor;\n"
+        "}\n";
+
+	GLuint vs{0}, fs{0};
+	vs = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vs, 1, &VERTEX_SHADER, 0);
+  glCompileShader(vs);
+	GL_ERRORS();
+
+  fs = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fs, 1, &FRAGMENT_SHADER, 0);
+  glCompileShader(fs);
+	GL_ERRORS();
+
+  rect_program= glCreateProgram();
+  glAttachShader(rect_program, vs);
+  glAttachShader(rect_program, fs);
+  glLinkProgram(rect_program);
+	GL_ERRORS();
+
+	show_notification("Welcome to the cricket game. Try to stay alive. This is some placeholder text. There will be more soon. Click anywhere on the screen to continue.");
+
 }
 
 PlayMode::~PlayMode() {
@@ -200,19 +236,24 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			return true;
 		}
 	} else if (evt.type == SDL_MOUSEBUTTONDOWN) {
-		int x, y;
-		SDL_GetMouseState(&x, &y);
-		std::cout << x << ", " << y << std::endl;
-		for (auto &button : buttons) {
-			glm::vec2 x_range(button.anchor.x, button.anchor.x + button.dimension.x);
-			glm::vec2 y_range(button.anchor.y - button.dimension.y, button.anchor.y);
+		if(notification_active) {
+			hide_notification();
+		} else {
+			int x, y;
+			SDL_GetMouseState(&x, &y);
+			std::cout << x << ", " << y << std::endl;
+			for (auto &button : buttons) {
+				glm::vec2 x_range(button.anchor.x, button.anchor.x + button.dimension.x);
+				glm::vec2 y_range(button.anchor.y - button.dimension.y, button.anchor.y);
 
-			if (x >= x_range.x && x <= x_range.y &&
+				if (x >= x_range.x && x <= x_range.y &&
 					y >= y_range.x && y <= y_range.y) {
 					
-				invoke_callback(button.trigger_event);
+					invoke_callback(button.trigger_event);
+				}
 			}
 		}
+		
 		return true;
 	} 
 
@@ -222,7 +263,8 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 void PlayMode::update(float elapsed) {
 	total_elapsed += elapsed;
 
-	// update food visuals
+	if(!notification_active) {
+		// update food visuals
 	{
 		int n_strawberries = (totalFood + 199.f) / 200.f;
 		while(strawberry_transforms.size() > n_strawberries) {
@@ -382,6 +424,7 @@ void PlayMode::update(float elapsed) {
 		glm::vec3 frame_at = frame[3];
 		Sound::listener.set_position_right(frame_at, frame_right, 1.0f / 60.0f);
 	}
+	}
 
 	//reset button press counters:
 	left.downs = 0;
@@ -471,7 +514,97 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 		for (auto &button : buttons)
 			button.draw_button(lines);
+
 	}
+
+	if (notification_active) {
+		draw_filled_rect(glm::vec2(-1.f,-1.f), glm::vec2(1.f, 1.f), glm::vec4(0.f, 0.f, 0.f, 0.7f));
+		glDisable(GL_DEPTH_TEST);
+		float aspect = float(drawable_size.x) / float(drawable_size.y);
+		DrawLines lines(glm::mat4(
+			1.0f / aspect, 0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 1.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f
+		));
+
+		constexpr float H = 0.15f;
+		for(int i=0;i<notification_text.size();i++) {
+			lines.draw_text(notification_text[i],
+			glm::vec3(-aspect + 0.4, 1.0 - 0.4 - (H + 0.04) * i, 0.f),
+			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+		}
+	}
+
+}
+
+void PlayMode::show_notification(std::string text) {
+	notification_active = true;
+	notification_text = std::vector<std::string>();
+
+	int start=0, len=0;
+	for(char c:text) {
+		len++;
+		if(len >= 50 && c == ' ') {
+			notification_text.push_back(text.substr(start,len));
+			start += len;
+			len = 0;
+		}
+	}
+	if(start < text.size()) {
+		notification_text.push_back(text.substr(start));
+	}
+}
+
+void PlayMode::hide_notification() {
+	notification_active = false;
+	notification_text = std::vector<std::string>();
+}
+
+void PlayMode::draw_filled_rect(glm::vec2 lower_left, glm::vec2 upper_right, glm::vec4 color) {
+
+	glUseProgram(rect_program);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	GL_ERRORS();
+
+	GLfloat fill_color[] = {color[0], color[1], color[2], color[3]};
+	GLuint fill_color_loc = glGetUniformLocation(rect_program, "fillColor");
+	GL_ERRORS();
+	glUniform4fv(fill_color_loc, 1, fill_color);
+	GL_ERRORS();
+
+	GLuint vbo = 0, vao = 0;
+	glGenBuffers(1, &vbo);
+	GL_ERRORS();
+	glGenVertexArrays(1, &vao);
+	GL_ERRORS();
+
+	GLfloat rect_data[] =
+	{
+		lower_left.x, lower_left.y,
+		upper_right.x, lower_left.y,
+		upper_right.x, upper_right.y,
+		lower_left.x, upper_right.y
+	};
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	GL_ERRORS();
+	glBufferData(GL_ARRAY_BUFFER, sizeof(rect_data), rect_data, GL_STATIC_DRAW);
+	GL_ERRORS();
+
+	glBindVertexArray(vao);
+	GL_ERRORS();
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	GL_ERRORS();
+	glEnableVertexAttribArray(0);
+	GL_ERRORS();
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	glUseProgram(0);
+	glDisable(GL_BLEND);
+
 	GL_ERRORS();
 }
 
