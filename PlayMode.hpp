@@ -53,7 +53,7 @@ struct PlayMode : Mode {
 		Scene::Transform *transform;
 		float lifeSpan = 100.f; // is there a constant lifespan
 		float matureAge = 20.f; //age that cricket is mature
-		bool starved = false;
+		bool is_healthy = true;
 		// or is the time of death determined by environment?
 		float age = 0.f;
 
@@ -64,7 +64,7 @@ struct PlayMode : Mode {
 		}
 
 		bool is_dead() {
-			return starved || age >= lifeSpan;
+			return !is_healthy || age >= lifeSpan;
 		}
 
 		bool is_baby() {

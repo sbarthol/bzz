@@ -220,6 +220,7 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 }
 
 void PlayMode::update(float elapsed) {
+	total_elapsed += elapsed;
 
 	// update food visuals
 	{
@@ -316,10 +317,30 @@ void PlayMode::update(float elapsed) {
 		assert(numBabyCrickets + numMatureCrickets + numDeadCrickets == Crickets.size());
 	}
 
+	//update disease rate if we have too many dead crickets in the environment
+	if ((uint64_t)(total_elapsed)%2 == 0)
+	{
+		auto is_sick = [=, *this](){
+			return rand() % 2000 + 1 < 8*numDeadCrickets/Crickets.size();
+		};
+
+		for( Cricket &cricket: Crickets) {
+				if(cricket.is_dead()) {
+					continue;
+				}
+				cricket.is_healthy = !is_sick();
+				if(cricket.is_dead()) {
+					kill_cricket(cricket);
+				}
+			}
+	}
+
 	//update food and starvation
+	if ((uint64_t)(total_elapsed)%2 == 0)
 	{
 		// Todo: do adults eat more than babies ?
 		// Todo: do not eat at every frame
+		
 		if (totalFood == 0.f){
 			auto is_starving = [](){
 				return rand() % 1000 + 1 < 6;
@@ -328,7 +349,7 @@ void PlayMode::update(float elapsed) {
 				if(cricket.is_dead()) {
 					continue;
 				}
-				cricket.starved = is_starving();
+				cricket.is_healthy = !is_starving();
 				if(cricket.is_dead()) {
 					kill_cricket(cricket);
 				}
@@ -499,7 +520,7 @@ void PlayMode::mature_cricket(Cricket &cricket) {
 
 void PlayMode::sell_mature() {
 	std::cout << "sell_mature" << std::endl;
-	const float price = 20;
+	const float price = 30;
 
 	std::unordered_set<std::string> mature_cricket_names;
 	std::vector<Cricket> mature_crickets;
