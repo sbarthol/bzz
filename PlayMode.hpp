@@ -3,31 +3,13 @@
 #include "Scene.hpp"
 #include "Sound.hpp"
 #include "DrawLines.hpp"
+#include "Buttons.hpp"
 
 #include <glm/glm.hpp>
 
 #include <vector>
 #include <deque>
 #include <list>
-
-struct Button_UI {
-	glm::vec2 anchor;		// upper-left corner
-	glm::vec2 dimension;	// width and height
-	std::string text;
-
-	enum call_back {
-		BUY_FOOD = 0,
-		SELL_MATURE = 1,
-		BUY_EGG
-	};
-
-	call_back trigger_event;
-
-	Button_UI(glm::vec2 _anchor, glm::vec2 _dimension, std::string _text, call_back _trigger_event)
-	 : anchor(_anchor), dimension(_dimension), text(_text), trigger_event(_trigger_event)  {}
-
-	void draw_button(DrawLines &lines);
-};
 
 struct PlayMode : Mode {
 	PlayMode();
@@ -110,5 +92,4 @@ struct PlayMode : Mode {
 	
 	//camera:
 	Scene::Camera *camera = nullptr;
-
 };

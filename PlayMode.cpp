@@ -7,6 +7,7 @@
 #include "Load.hpp"
 #include "gl_errors.hpp"
 #include "data_path.hpp"
+#include "GL.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -423,7 +424,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
 
 		for (auto &button : buttons)
-			button.draw_button(lines);
+			button.draw_button();
 	}
 	GL_ERRORS();
 }
@@ -518,21 +519,4 @@ void PlayMode::sell_mature() {
 			it++;
 		}
 	}
-}
-
-void Button_UI::draw_button(DrawLines &lines) {
-	// hard coded: should change in the future
-	const uint16_t width = 1280;
-	const uint16_t height = 720;
-	const float aspect = (float)width / (float)height;
-
-	const float H = 0.09f;
-
-	float screen_x = anchor.x / width * 2 - 1;
-	screen_x *= aspect;
-	float screen_y = (height - anchor.y) / height * 2 - 1;
-	lines.draw_text(text,
-	glm::vec3(screen_x, screen_y, 0.0f),
-	glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-	glm::u8vec4(0x00, 0x00, 0x00, 0x00));
 }
