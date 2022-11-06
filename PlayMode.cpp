@@ -442,8 +442,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			glm::vec3(aspect - 0.8f, 1.0f - 0.75f, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
-
-
 		lines.draw_text("WASD moves the camera",
 			glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
@@ -453,6 +451,18 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + + 0.1f * H + ofs, 0.0),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
+		if (numDeadCrickets > 0){
+			lines.draw_text("Dead crickets are spreading disease.",
+			glm::vec3(aspect -2.f, -1.0 + + 0.1f * H + ofs, 0.0),
+			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+			glm::u8vec4(0xff, 0x10, 0x10, 0x00));
+		}
+		else if (totalFood <= 0){
+			lines.draw_text("Crickets are starving.",
+			glm::vec3(aspect - 1.f + ofs, -1.0 + + 0.1f * H + ofs, 0.0),
+			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+			glm::u8vec4(0xff, 0x11, 0x11, 0x00));
+		}
 
 		for (auto &button : buttons)
 			button.draw_button(lines);
@@ -527,7 +537,7 @@ void PlayMode::sell_mature() {
 	std::vector<Cricket> non_mature_crickets;
 
 	for(Cricket &cricket: Crickets) {
-		if(cricket.is_mature()) {
+		if(cricket.is_mature() && !cricket.is_dead()) {
 			mature_crickets.push_back(cricket);
 			mature_cricket_names.insert("Cricket_" + std::to_string(cricket.cricketID));
 		}else{
