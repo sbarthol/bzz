@@ -80,8 +80,9 @@ struct PlayMode : Mode {
 	float totalMoney = 1000.f;
 	float totalFood = 20.f;
 
-	// Buttons
-	std::vector<Button_UI> buttons;
+	// Button Functions
+	UI game_UI;
+
 	void invoke_callback(Button_UI::call_back);
 	void buy_food();
 	void buy_eggs();
