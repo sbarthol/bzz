@@ -224,7 +224,7 @@ void PlayMode::update(float elapsed) {
 
 	// update food visuals
 	{
-		int n_strawberries = (totalFood + 199.f) / 200.f;
+		int n_strawberries = int((totalFood + 199.f) / 200.f);
 		while(strawberry_transforms.size() > n_strawberries) {
 			strawberry_transforms.pop_front();
 		}

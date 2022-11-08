@@ -1,4 +1,5 @@
 #include "GL.hpp"
+#include "gl_errors.hpp"
 #include "gl_compile_program.hpp"
 
 #include <string>
@@ -6,7 +7,7 @@
 
 #include "Buttons.hpp"
 
-void Button_UI::Button_UI()	:
+Button_UI::Button_UI(glm::vec2 _anchor, glm::vec2 _dimension, std::string _text, call_back _trigger_event)	:
     anchor(_anchor), dimension(_dimension), text(_text), trigger_event(_trigger_event) {
     
     program = gl_compile_program(
@@ -35,7 +36,10 @@ void Button_UI::Button_UI()	:
         "}\n"
     );
 
-    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(SCR_WIDTH), 0.0f, static_cast<float>(SCR_HEIGHT));
+    // hard-coded SCR_WIDTH and SCR_HEIGHT
+    unsigned int SCR_WIDTH = 1280;
+    unsigned int SCR_HEIGHT = 720;
+    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(SCR_WIDTH), static_cast<float>(SCR_HEIGHT), 0.0f);
     glUseProgram(program);
     glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
     glUseProgram(0);
@@ -46,10 +50,10 @@ void Button_UI::Button_UI()	:
     // set the color to white (255, 255, 255)
     // for now it doesn't matter since fragment shader
     // doesn't sample from the texture
-    pure_color[height][width][3] = {(int8_t)-1};
+    uint8_t pure_color[height][width][3] = {(uint8_t)-1};
     glGenTextures(1, &TextureID);
     glBindTexture(GL_TEXTURE_2D, TextureID);
-    glTexImage2D {
+    glTexImage2D(
         GL_TEXTURE_2D,
         0,
         GL_RGB,
@@ -59,7 +63,7 @@ void Button_UI::Button_UI()	:
         GL_RGB,
         GL_UNSIGNED_BYTE,
         pure_color
-    };
+    );
     // texture options
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -85,19 +89,19 @@ void Button_UI::Button_UI()	:
 void Button_UI::draw_button() {
     glUseProgram(program);
 
-    glm::vec3 color = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
     glUniform3f(glGetUniformLocation(program, "textColor"), color.x, color.y, color.z);
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(VAO);
 
     float vertices[6][4] = {
-        { anchor.x,               anchor.y,               0.0f, 0.0f }, // lower-left         
-        { anchor.x,               anchor.y + dimension.y, 0.0f, 1.0f }, // upper-left
-        { anchor.x + dimension.x, anchor.y + dimension.y, 1.0f, 1.0f },
+        { anchor.x,               anchor.y + dimension.y, 0.0f, 0.0f }, // lower-left         
+        { anchor.x,               anchor.y,               0.0f, 1.0f }, // upper-left
+        { anchor.x + dimension.x, anchor.y,               1.0f, 1.0f },
 
-        { anchor.x,               anchor.y,               0.0f, 0.0f },
-        { anchor.x + dimension.x, anchor.y + dimension.y, 1.0f, 1.0f },
-        { anchor.x + dimension.x, anchor.y,               1.0f, 0.0f }  // lower-right
+        { anchor.x,               anchor.y + dimension.y, 0.0f, 0.0f },
+        { anchor.x + dimension.x, anchor.y,               1.0f, 1.0f },
+        { anchor.x + dimension.x, anchor.y + dimension.y, 1.0f, 0.0f }  // lower-right
     };
     glBindTexture(GL_TEXTURE_2D, TextureID);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);

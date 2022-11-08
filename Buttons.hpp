@@ -9,7 +9,7 @@ struct Button_UI {
 
     unsigned int TextureID;
     unsigned int program;
-    unsigend int VAO, VBO;
+    unsigned int VAO, VBO;
 
 	enum call_back {
 		BUY_FOOD = 0,
