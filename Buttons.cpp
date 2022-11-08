@@ -55,9 +55,9 @@ UI::UI(PlayMode* _game) : game(_game) {
     glBindVertexArray(0);
 
     // initialize button arrays
-    buttons.emplace_back(glm::vec2(100,100), glm::vec2(100, 50), "Buy Food", Button_UI::BUY_FOOD);
-	buttons.emplace_back(glm::vec2(100,200), glm::vec2(100, 50), "Buy Egg", Button_UI::BUY_EGG);
-	buttons.emplace_back(glm::vec2(100,300), glm::vec2(100, 50), "Sell Mature", Button_UI::SELL_MATURE);
+    buttons.emplace_back(glm::vec2(100,100), glm::vec2(130, 50), "Buy Food", Button_UI::BUY_FOOD);
+	buttons.emplace_back(glm::vec2(100,200), glm::vec2(130, 50), "Buy Egg", Button_UI::BUY_EGG);
+	buttons.emplace_back(glm::vec2(100,300), glm::vec2(130, 50), "Sell Mature", Button_UI::SELL_MATURE);
 
     GL_ERRORS();
 }
@@ -125,11 +125,38 @@ void UI::draw() {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindTexture(GL_TEXTURE_2D, 0);
-
-        // draw texts
     }
     glBindVertexArray(0);
     glUseProgram(0);
+
+    GL_ERRORS();
+
+    for (auto &button : buttons) {
+        // draw texts
+        const uint16_t width = 1280;
+        const uint16_t height = 720;
+        const float aspect = (float)width / (float)height;
+		DrawLines lines(glm::mat4(
+			1.0f / aspect, 0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 1.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f
+		));
+
+        const float H = 0.09f;
+
+        glm::vec2 offset = glm::vec2(10, -10);
+        float x = button.anchor.x + offset.x;
+        float y = button.anchor.y + button.dimension.y + offset.y;
+
+        float screen_x = x / width * 2 - 1;
+        screen_x *= aspect;
+        float screen_y = (height - y) / height * 2 - 1;
+        lines.draw_text(button.text,
+        glm::vec3(screen_x, screen_y, 0.0f),
+        glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+        glm::u8vec4(0x00, 0x00, 0x00, 0x00));
+    }
 
     GL_ERRORS();
 }
