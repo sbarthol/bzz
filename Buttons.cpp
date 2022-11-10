@@ -71,7 +71,7 @@ Button_UI::Button_UI(glm::vec2 _anchor, glm::vec2 _dimension, std::string _text,
     // set the color to white (255, 255, 255)
     // for now it doesn't matter since fragment shader
     // doesn't sample from the texture
-    uint8_t pure_color[height][width][3] = {(uint8_t)-1};
+    uint8_t pure_color[height][width][3] = {{{(uint8_t)-1}}};
     glGenTextures(1, &TextureID);
     glBindTexture(GL_TEXTURE_2D, TextureID);
     glTexImage2D(
