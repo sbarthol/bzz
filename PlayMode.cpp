@@ -104,7 +104,7 @@ void PlayMode::spawn_cricket() {
 	Scene::Transform *transform = &scene.transforms.back();
 	Cricket cricket = Cricket(Cricket::seq++, transform);
 	// TODO remove!!
-	cricket.age = cricket.matureAge;
+	// cricket.age = cricket.matureAge;
 	Crickets.push_back(cricket);
 
 	transform->position = glm::vec3(get_rng_range(bedding_min.x,bedding_max.x), get_rng_range(bedding_min.y,bedding_max.y), baby_cricket_transform->position.z);
