@@ -7,6 +7,7 @@
 #include "Load.hpp"
 #include "gl_errors.hpp"
 #include "data_path.hpp"
+#include "GL.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -124,7 +125,7 @@ void PlayMode::kill_cricket(Cricket &cricket) {
 }
 
 
-PlayMode::PlayMode() : scene(*bzz_scene) {
+PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 
 	for (auto &transform : scene.transforms) {
 		if (transform.name == "AdultCricket") {
@@ -147,10 +148,6 @@ PlayMode::PlayMode() : scene(*bzz_scene) {
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
 	camera = &scene.cameras.front();
-
-	buttons.emplace_back(glm::vec2(100,100), glm::vec2(100, 50), "Buy Food", Button_UI::BUY_FOOD);
-	buttons.emplace_back(glm::vec2(100,200), glm::vec2(100, 50), "Buy Egg", Button_UI::BUY_EGG);
-	buttons.emplace_back(glm::vec2(100,300), glm::vec2(100, 50), "Sell Mature", Button_UI::SELL_MATURE);
 
 	// Loop chirping sound and background music
 	Sound::loop(*chirping_sample, 1.0f, 0.0f);
@@ -242,18 +239,8 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			int x, y;
 			SDL_GetMouseState(&x, &y);
 			std::cout << x << ", " << y << std::endl;
-			for (auto &button : buttons) {
-				glm::vec2 x_range(button.anchor.x, button.anchor.x + button.dimension.x);
-				glm::vec2 y_range(button.anchor.y - button.dimension.y, button.anchor.y);
-
-				if (x >= x_range.x && x <= x_range.y &&
-					y >= y_range.x && y <= y_range.y) {
-					
-					invoke_callback(button.trigger_event);
-				}
-			}
+			game_UI.update(x, y, evt.type == SDL_MOUSEBUTTONDOWN);
 		}
-		
 		return true;
 	} 
 
@@ -266,7 +253,7 @@ void PlayMode::update(float elapsed) {
 	if(!notification_active) {
 		// update food visuals
 	{
-		int n_strawberries = (totalFood + 199.f) / 200.f;
+		int n_strawberries = int((totalFood + 199.f) / 200.f);
 		while(strawberry_transforms.size() > n_strawberries) {
 			strawberry_transforms.pop_front();
 		}
@@ -465,6 +452,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		));
 
 		constexpr float H = 0.09f;
+		game_UI.draw();
 		if (totalFood <= 0){
 			lines.draw_text("Food: " + std::to_string((int)totalFood),
 				glm::vec3(aspect - 0.8f, 1.0f - 0.30f, 0.0),
@@ -698,21 +686,4 @@ void PlayMode::sell_mature() {
 			it++;
 		}
 	}
-}
-
-void Button_UI::draw_button(DrawLines &lines) {
-	// hard coded: should change in the future
-	const uint16_t width = 1280;
-	const uint16_t height = 720;
-	const float aspect = (float)width / (float)height;
-
-	const float H = 0.09f;
-
-	float screen_x = anchor.x / width * 2 - 1;
-	screen_x *= aspect;
-	float screen_y = (height - anchor.y) / height * 2 - 1;
-	lines.draw_text(text,
-	glm::vec3(screen_x, screen_y, 0.0f),
-	glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-	glm::u8vec4(0x00, 0x00, 0x00, 0x00));
 }
