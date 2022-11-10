@@ -10,6 +10,22 @@
 #include <vector>
 #include <deque>
 #include <list>
+#include <chrono>
+
+
+struct Popup_UI {
+	glm::vec2 anchor;
+	std::string text;
+	glm::u8vec4 color;
+
+	float duration;
+	std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
+
+	Popup_UI(glm::vec2 _anchor, std::string _text, glm::u8vec4 _color, float _duration) 
+	 : anchor(_anchor), text(_text), color(_color), duration(_duration), start_time(std::chrono::high_resolution_clock::now()) {}
+
+	void draw(DrawLines &lines);
+};
 
 struct PlayMode : Mode {
 	PlayMode();
@@ -90,17 +106,24 @@ struct PlayMode : Mode {
 	float totalMoney = 1000.f;
 	float totalFood = 5.f;
 
-	// Button Functions
-	UI game_UI;
+	
+
+	// Sound
+	std::shared_ptr< Sound::PlayingSample > chirping_loop;
 
 	void invoke_callback(Button_UI::call_back);
-	void buy_food();
-	void buy_eggs();
-	void sell_mature();
+	bool buy_food();
+	bool buy_eggs();
+	bool sell_mature();
+
+	std::vector<Popup_UI> popups;
 
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
 	
+	// Button Functions
+	UI game_UI;
+
 	//camera:
 	Scene::Camera *camera = nullptr;
 };

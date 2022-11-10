@@ -64,6 +64,11 @@ Load< Sound::Sample > background_sample(LoadTagDefault, []() -> Sound::Sample co
 	return new Sound::Sample(data_path("background_music.wav"));
 });
 
+Load< Sound::Sample > click_error_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("access_denied.wav"));
+});
+
+
 Scene::Transform* PlayMode::spawn_strawberry() {
 
 	Mesh const &mesh = bzz_meshes->lookup("Strawberry");
@@ -99,6 +104,8 @@ void PlayMode::spawn_cricket() {
 
 	Scene::Transform *transform = &scene.transforms.back();
 	Cricket cricket = Cricket(Cricket::seq++, transform);
+	// TODO remove!!
+	// cricket.age = cricket.matureAge;
 	Crickets.push_back(cricket);
 
 	transform->position = glm::vec3(get_rng_range(bedding_min.x,bedding_max.x), get_rng_range(bedding_min.y,bedding_max.y), baby_cricket_transform->position.z);
@@ -150,7 +157,8 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 	camera = &scene.cameras.front();
 
 	// Loop chirping sound and background music
-	Sound::loop(*chirping_sample, 1.0f, 0.0f);
+	// chirping_loop = Sound::loop(*chirping_sample, 1.0f, 0.0f);
+	// chirping_loop.
 	Sound::loop(*background_sample, 1.0f, 0.0f);
 
 	Mesh const &mesh = bzz_meshes->lookup("Bedding");
@@ -253,7 +261,7 @@ void PlayMode::update(float elapsed) {
 	if(!notification_active) {
 		// update food visuals
 	{
-		int n_strawberries = int((totalFood + 199.f) / 200.f);
+		size_t n_strawberries = int((totalFood + 199.f) / 200.f);
 		while(strawberry_transforms.size() > n_strawberries) {
 			strawberry_transforms.pop_front();
 		}
@@ -350,18 +358,32 @@ void PlayMode::update(float elapsed) {
 	if ((uint64_t)(total_elapsed)%2 == 0)
 	{
 		auto is_sick = [=, *this](){
-			return rand() % 2000 + 1 < 8*numDeadCrickets/Crickets.size();
+			return uint(rand() % 2000 + 1) < 8*numDeadCrickets/Crickets.size();
 		};
 
 		for( Cricket &cricket: Crickets) {
-				if(cricket.is_dead()) {
-					continue;
-				}
-				cricket.is_healthy = !is_sick();
-				if(cricket.is_dead()) {
-					kill_cricket(cricket);
-				}
+			if(cricket.is_dead()) {
+				continue;
 			}
+			cricket.is_healthy = !is_sick();
+			if(cricket.is_dead()) {
+				kill_cricket(cricket);
+			}
+		}
+	}
+	// Set sounds
+	{
+		// Stop / start chirping sounds if no crickets
+		if (numBabyCrickets > 0 || numMatureCrickets > 0) {
+			if (chirping_loop == NULL) {
+				chirping_loop = Sound::loop(*chirping_sample, 1.0f, 0.0f);
+			}
+		} else {
+			if (chirping_loop != NULL) {
+				chirping_loop->stop();
+				chirping_loop = NULL;
+			}
+		}
 	}
 
 	//update food and starvation
@@ -498,6 +520,20 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0xff, 0xff, 0xff, 0xff));
 		}
+
+		auto popup = popups.begin();
+		while(popup != popups.end()) {
+			auto current_time = std::chrono::high_resolution_clock::now();
+			float time_elapsed = std::chrono::duration< float >(current_time - popup->start_time).count();
+			if (time_elapsed < popup->duration) {
+				popup->draw(lines);
+				popup++;
+			} else {
+				popup = popups.erase(popup);
+			}
+		}
+
+		
 	}
 
 	if (notification_active) {
@@ -512,13 +548,15 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		));
 
 		constexpr float H = 0.15f;
-		for(int i=0;i<notification_text.size();i++) {
+		for(size_t i=0;i<notification_text.size();i++) {
 			lines.draw_text(notification_text[i],
 			glm::vec3(-aspect + 0.4, 1.0 - 0.4 - (H + 0.04) * i, 0.f),
 			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
 			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
 		}
 	}
+		
+	
 
 }
 
@@ -526,7 +564,7 @@ void PlayMode::show_notification(std::string text) {
 	notification_active = true;
 	notification_text = std::vector<std::string>();
 
-	int start=0, len=0;
+	uint start=0, len=0;
 	for(char c:text) {
 		len++;
 		if(len >= 50 && c == ' ') {
@@ -592,49 +630,61 @@ void PlayMode::draw_filled_rect(glm::vec2 lower_left, glm::vec2 upper_right, glm
 }
 
 void PlayMode::invoke_callback(Button_UI::call_back callback) {
-	Sound::play(*click_sample, 100.0f, 0.0f);
+	bool clickSuccess = true;
 	switch(callback) {
 		case Button_UI::BUY_FOOD:
-			buy_food();
+			clickSuccess = buy_food();
 			break;
 		case Button_UI::BUY_EGG:
-			buy_eggs();
+			clickSuccess = buy_eggs();
 			break;
-		case Button_UI::SELL_MATURE:
-			Sound::play(*cash_sample, 1.0f, 0.0f);
-			sell_mature();
+		case Button_UI::SELL_MATURE:	
+			clickSuccess = sell_mature();
+			if (clickSuccess)
+				Sound::play(*cash_sample, 1.0f, 0.0f);
 			break;
 		default:
 			throw std::runtime_error("unrecognized callback\n");
 	}
+	if (clickSuccess)
+		Sound::play(*click_sample, 25.0f, 0.0f);
+	else
+		Sound::play(*click_error_sample, 1.0f, 0.0f);
 }
 
+
 template<typename T>
-void buy(T quantity, float price, T &total_quantity, float &total_money) {
+bool buy(T quantity, float price, T &total_quantity, float &total_money) {
 	if (total_money >= price) {
 		total_money -= price;
 		total_quantity += quantity;
+		return true;
 	}
+	return false;
 }
 
-void PlayMode::buy_food() {
+bool PlayMode::buy_food() {
 	std::cout << "buy_food" << std::endl;
 	const float unitFood = 200;
 	const float unitPrice = 10;
 
-	buy<float>(unitFood, unitPrice, totalFood, totalMoney);
+	return buy<float>(unitFood, unitPrice, totalFood, totalMoney);
 }
 
-void PlayMode::buy_eggs() {
+bool PlayMode::buy_eggs() {
 	std::cout << "buy_eggs" << std::endl;
 	const size_t unitEggs = 10;
 	const float unitPrice = 200;
+	bool success = false;
 
 	if (totalMoney >= unitPrice) {
 		for (size_t i = 0; i < unitEggs; i++)
 			spawn_cricket();
 		totalMoney -= unitPrice;
+		success = true;
 	}
+
+	return success;
 }
 
 void PlayMode::mature_cricket(Cricket &cricket) {
@@ -649,13 +699,14 @@ void PlayMode::mature_cricket(Cricket &cricket) {
 	}
 }
 
-void PlayMode::sell_mature() {
+bool PlayMode::sell_mature() {
 	std::cout << "sell_mature" << std::endl;
 	const float price = 30;
 
 	std::unordered_set<std::string> mature_cricket_names;
 	std::vector<Cricket> mature_crickets;
 	std::vector<Cricket> non_mature_crickets;
+	bool success = false;
 
 	for(Cricket &cricket: Crickets) {
 		if(cricket.is_mature() && !cricket.is_dead()) {
@@ -667,8 +718,13 @@ void PlayMode::sell_mature() {
 	}
 
 	assert(mature_crickets.size() == numMatureCrickets);
+
+	if (numMatureCrickets > 0) {
+		success = true;
+	}
 	
-	totalMoney += numMatureCrickets * price;
+	float profit = numMatureCrickets * price;
+	totalMoney += profit;
 	numMatureCrickets = 0;
 	Crickets = std::move(non_mature_crickets);
 
@@ -681,4 +737,31 @@ void PlayMode::sell_mature() {
 			it++;
 		}
 	}
+
+	if (success) {
+		// glm::u8vec4(0x00, 0x00, 0x00, 0x00)
+		
+		popups.emplace_back(glm::vec2(235,345), "+$" + std::to_string(int(profit)), glm::u8vec4(0x38, 0x66, 0x41, 0x00), 0.75);
+	}
+
+	return success;
+}
+
+void Popup_UI::draw(DrawLines &lines) {
+	// hard coded: should change in the future
+	const uint16_t width = 1280;
+	const uint16_t height = 720;
+	const float aspect = (float)width / (float)height;
+
+	const float H = 0.09f;
+
+	float screen_x = anchor.x / width * 2 - 1;
+	screen_x *= aspect;
+	float screen_y = (height - anchor.y) / height * 2 - 1;
+	lines.draw_text(text,
+	glm::vec3(screen_x, screen_y, 0.0f),
+	glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
+	color);
+
+	anchor.x += 0.5;
 }
