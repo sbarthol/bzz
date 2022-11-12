@@ -105,6 +105,9 @@ struct PlayMode : Mode {
 	size_t numDeadCrickets = 0;
 	float totalMoney = 1000.f;
 	float totalFood = 5.f;
+	size_t eggPrice = 200;
+	size_t foodPrice = 200;
+	bool gameOver = false;
 
 	
 

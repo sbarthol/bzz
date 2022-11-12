@@ -435,6 +435,13 @@ void PlayMode::update(float elapsed) {
 	}
 	}
 
+	if ((totalFood == 0 && totalMoney < foodPrice) ||  (totalMoney < eggPrice && numMatureCrickets == 0)){
+		gameOver = true;
+		show_notification("Game Over");
+
+		
+	}
+
 	//reset button press counters:
 	left.downs = 0;
 	right.downs = 0;
@@ -581,6 +588,9 @@ void PlayMode::show_notification(std::string text) {
 void PlayMode::hide_notification() {
 	notification_active = false;
 	notification_text = std::vector<std::string>();
+	if (gameOver){
+		exit(0);
+	}
 }
 
 void PlayMode::draw_filled_rect(glm::vec2 lower_left, glm::vec2 upper_right, glm::vec4 color) {
@@ -665,7 +675,7 @@ bool buy(T quantity, float price, T &total_quantity, float &total_money) {
 
 bool PlayMode::buy_food() {
 	std::cout << "buy_food" << std::endl;
-	const float unitFood = 200;
+	const float unitFood = foodPrice;
 	const float unitPrice = 10;
 
 	return buy<float>(unitFood, unitPrice, totalFood, totalMoney);
@@ -674,7 +684,7 @@ bool PlayMode::buy_food() {
 bool PlayMode::buy_eggs() {
 	std::cout << "buy_eggs" << std::endl;
 	const size_t unitEggs = 10;
-	const float unitPrice = 200;
+	const float unitPrice = eggPrice;
 	bool success = false;
 
 	if (totalMoney >= unitPrice) {
