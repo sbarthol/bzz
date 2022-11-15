@@ -544,9 +544,15 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	}
 
 	if (notification_active) {
-		draw_filled_rect(glm::vec2(-1.f,-1.f), glm::vec2(1.f, 1.f), glm::vec4(0.f, 0.f, 0.f, 0.7f));
-		glDisable(GL_DEPTH_TEST);
+		draw_filled_rect(glm::vec2(-1.f,-1.f), glm::vec2(1.f, 1.f), glm::vec4(0.f, 0.f, 0.f, 0.4f));
+		draw_filled_rect(glm::vec2(-0.5f,-0.5f), glm::vec2(0.5f, 0.5f), glm::vec4(45.f / 256.f, 32.f / 256.f, 107.f / 256.f, 1.f));
 		float aspect = float(drawable_size.x) / float(drawable_size.y);
+		const float eps1 = 0.03;
+		const float eps2 = 0.01;
+		const float eps3 = 0.02;
+		draw_filled_rect(glm::vec2(-0.5f + eps1 / aspect,-0.5f + eps1), glm::vec2(0.5f - eps1 / aspect, 0.5f - eps1), glm::vec4(138.f / 256.f, 119.f / 256.f, 67.f / 256.f, 1.f));
+		draw_filled_rect(glm::vec2(-0.5f +  (eps1 + eps2) / aspect,-0.5f + eps1 + eps3), glm::vec2(0.5f - (eps1 + eps3)  / aspect, 0.5f - (eps1 + eps2)), glm::vec4(227.f / 256.f, 213.f / 256.f, 184.f / 256.f, 1.f));
+		glDisable(GL_DEPTH_TEST);
 		DrawLines lines(glm::mat4(
 			1.0f / aspect, 0.0f, 0.0f, 0.0f,
 			0.0f, 1.0f, 0.0f, 0.0f,
@@ -562,9 +568,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
 		}
 	}
-		
-	
-
 }
 
 void PlayMode::show_notification(std::string text) {
