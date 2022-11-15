@@ -703,6 +703,7 @@ void PlayMode::hide_current_notification() {
 	letter_counter = 0;
 	current_elapsed = 0;
 	if (gameOver){
+		// the game crashed, but the game was not over lmao
 		//exit(0);
 	}
 }
