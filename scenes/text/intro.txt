@@ -1,0 +1,3 @@
+Welcome to the cricket breeding game! In this game, your job is to breed crickets and selling them once they reach maturity. Start the game by buying some eggs.
+
+Pressing space will skip the text animation and close this window.

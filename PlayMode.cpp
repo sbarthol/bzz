@@ -239,8 +239,8 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 	// Initialize text data structures
 	#define FONT_SIZE 100
 
-	// https://www.1001fonts.com/risque-font.html
-	std::string fontfile = data_path("../scenes/Risque-Regular.ttf");
+	// https://www.1001fonts.com/november-font.html
+	std::string fontfile = data_path("../scenes/novem___.ttf");
 
 	/* Initialize FreeType and create FreeType font face. */
   FT_Error ft_error;
@@ -255,7 +255,7 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
   /* Create hb-ft font. */
   hb_font = hb_ft_font_create (ft_face, NULL);
 
-	show_notification(data_path("../scenes/intro"));
+	show_notification(data_path("../scenes/text/intro.txt"));
 
 }
 
@@ -499,7 +499,6 @@ void PlayMode::update(float elapsed) {
 	
 	} else {
 
-		printf("space.downs = %d, letter_counter = %zu, total_letters = %zu\n", space.downs, letter_counter, total_letters);
 		if(space.downs && letter_counter < total_letters) {
 			letter_counter = total_letters;
 		} else if(space.downs) {
@@ -507,7 +506,7 @@ void PlayMode::update(float elapsed) {
 		} else {
 			current_elapsed += elapsed;
 			if(current_elapsed >= max_elapsed) {
-				letter_counter++;
+				letter_counter = std::min(letter_counter + 1, total_letters);
 				current_elapsed = 0.0;
 			}
 		}
@@ -633,7 +632,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		GL_ERRORS();
 		draw_filled_rect(glm::vec2(-0.5f +  (eps1 + eps2) / aspect,-0.5f + eps1 + eps3), glm::vec2(0.5f - (eps1 + eps3)  / aspect, 0.5f - (eps1 + eps2)), glm::vec4(227.f / 256.f, 213.f / 256.f, 184.f / 256.f, 1.f));
 		GL_ERRORS();
-		draw_text_lines(drawable_size,-0.6 , 0.4);
+		draw_text_lines(drawable_size,-0.58 , 0.36);
 		GL_ERRORS();
 		glDisable(GL_DEPTH_TEST);
 		GL_ERRORS();
@@ -651,8 +650,15 @@ void PlayMode::show_notification(std::string file_name) {
 	uint start=0, len=0;
 	total_letters = 0;
 	for(char c:text) {
+		if(c=='\n') {
+			notification_text.push_back(text.substr(start,len));
+			start += len + 1;
+			total_letters += len;
+			len = 0;
+			continue;
+		}
 		len++;
-		if(len >= 50 && c == ' ') {
+		if((len >= 40 && c == ' ') || c=='\n') {
 			notification_text.push_back(text.substr(start,len));
 			start += len;
 			total_letters += len;
@@ -860,7 +866,7 @@ std::string PlayMode::load_text_from_file(std::string filename) {
 	std::string text = "";
   std::ifstream input(filename);
   for (std::string line; getline(input, line);) {
-		text += line;
+		text += line + '\n';
   }
 	return text;
 }
