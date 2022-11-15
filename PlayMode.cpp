@@ -778,7 +778,7 @@ bool PlayMode::buy_food() {
 	std::cout << "buy_food" << std::endl;
 	if(!first_time_food) {
 		first_time_food = true;
-		schedule_notification(data_path("../scenes/text/first_time_food.txt"), 2);
+		schedule_notification(data_path("../scenes/text/first_time_food.txt"), 1.5);
 	}
 	const float unitFood = foodPrice;
 	const float unitPrice = 10;
@@ -788,6 +788,10 @@ bool PlayMode::buy_food() {
 
 bool PlayMode::buy_eggs() {
 	std::cout << "buy_eggs" << std::endl;
+	if(!first_time_eggs) {
+		first_time_eggs = true;
+		schedule_notification(data_path("../scenes/text/first_time_eggs.txt"), 1.5);
+	}
 	const size_t unitEggs = 10;
 	const float unitPrice = eggPrice;
 	bool success = false;
