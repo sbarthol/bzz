@@ -535,11 +535,9 @@ void PlayMode::update(float elapsed) {
 		}
 	}
 
-	if ((totalFood == 0 && totalMoney < foodPrice) ||  (totalMoney < eggPrice && numMatureCrickets == 0)){
+	if(numDeadCrickets == Crickets.size() && totalMoney < eggPrice && !gameOver) {
 		gameOver = true;
-		//show_notification("Game Over");
-
-		
+		schedule_notification(data_path("../scenes/text/game_over.txt"), 1);
 	}
 
 	//reset button press counters:
@@ -702,10 +700,6 @@ void PlayMode::hide_current_notification() {
 	notification_text = std::vector<std::string>();
 	letter_counter = 0;
 	current_elapsed = 0;
-	if (gameOver){
-		// the game crashed, but the game was not over lmao
-		//exit(0);
-	}
 }
 
 void PlayMode::draw_filled_rect(glm::vec2 lower_left, glm::vec2 upper_right, glm::vec4 color) {
