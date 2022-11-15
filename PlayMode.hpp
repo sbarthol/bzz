@@ -118,6 +118,9 @@ struct PlayMode : Mode {
 	// Tutorial
 	bool first_time_food = false; 
 	bool first_time_eggs = false; 
+	bool first_time_matured = false; 
+	bool first_time_starved = false;
+	bool first_time_sick = false;
 
 	Scene::Transform *first_cricket; 
 	std::vector<Cricket> Crickets;

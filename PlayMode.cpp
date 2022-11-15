@@ -361,6 +361,10 @@ void PlayMode::update(float elapsed) {
 			if(cricket.is_dead()) {
 				kill_cricket(cricket);
 			} else if (cricket.is_mature()) {
+				if(!first_time_matured) {
+					first_time_matured = true;
+					schedule_notification(data_path("../scenes/text/first_time_matured.txt"), 1);
+				}
 				mature_cricket(cricket);
 			}
 		}
@@ -439,6 +443,11 @@ void PlayMode::update(float elapsed) {
 			}
 			cricket.is_healthy = !is_sick();
 			if(cricket.is_dead()) {
+				if(!first_time_sick) {
+					first_time_sick = true;
+					schedule_notification(data_path("../scenes/text/first_time_sick.txt"), 1.5);
+					schedule_notification(data_path("../scenes/text/first_time_sick2.txt"), 1.6);
+				}
 				kill_cricket(cricket);
 			}
 		}
@@ -474,6 +483,10 @@ void PlayMode::update(float elapsed) {
 				}
 				cricket.is_healthy = !is_starving();
 				if(cricket.is_dead()) {
+					if(!first_time_starved) {
+						first_time_starved = true;
+						schedule_notification(data_path("../scenes/text/first_time_starved.txt"), 0);
+					}
 					kill_cricket(cricket);
 				}
 			}
@@ -690,7 +703,7 @@ void PlayMode::hide_current_notification() {
 	letter_counter = 0;
 	current_elapsed = 0;
 	if (gameOver){
-		exit(0);
+		//exit(0);
 	}
 }
 
