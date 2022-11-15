@@ -215,7 +215,7 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
         "uniform sampler2D tex;\n"
         "in vec2 texCoords;\n"
         "out vec4 fragColor;\n"
-				"const vec4 color = vec4(0.388, 0.765, 0.196, 1);\n"
+				"const vec4 color = vec4(0.2, 0.2, 0.2, 1);\n"
         "void main(void) {\n"
         "    fragColor = vec4(1, 1, 1, texture(tex, texCoords).r) * color;\n"
         "}\n";
@@ -237,7 +237,7 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 	GL_ERRORS();
 
 	// Initialize text data structures
-	#define FONT_SIZE 32
+	#define FONT_SIZE 100
 
 	// https://www.1001fonts.com/risque-font.html
 	std::string fontfile = data_path("../scenes/Risque-Regular.ttf");
@@ -255,13 +255,13 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
   /* Create hb-ft font. */
   hb_font = hb_ft_font_create (ft_face, NULL);
 
-	//show_notification(data_path("../scenes/intro"));
+	show_notification(data_path("../scenes/intro"));
 
 }
 
 PlayMode::~PlayMode() {
-	FT_Done_Face(ft_face);
-	FT_Done_FreeType(ft_library);
+	//FT_Done_Face(ft_face);
+	//FT_Done_FreeType(ft_library);
 }
 
 bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
@@ -283,6 +283,9 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			down.downs += 1;
 			down.pressed = true;
 			return true;
+		} else if (evt.key.keysym.sym == SDLK_SPACE) {
+			space.pressed = true;
+			return true;
 		}
 	} else if (evt.type == SDL_KEYUP) {
 		if (evt.key.keysym.sym == SDLK_a) {
@@ -297,16 +300,16 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 		} else if (evt.key.keysym.sym == SDLK_s) {
 			down.pressed = false;
 			return true;
+		} else if (evt.key.keysym.sym == SDLK_SPACE) {
+			space.downs += 1;
+			down.pressed = false;
+			return true;
 		}
 	} else if (evt.type == SDL_MOUSEBUTTONDOWN) {
-		if(notification_active) {
-			hide_notification();
-		} else {
-			int x, y;
-			SDL_GetMouseState(&x, &y);
-			std::cout << x << ", " << y << std::endl;
-			game_UI.update(x, y, evt.type == SDL_MOUSEBUTTONDOWN);
-		}
+		int x, y;
+		SDL_GetMouseState(&x, &y);
+		std::cout << x << ", " << y << std::endl;
+		game_UI.update(x, y, evt.type == SDL_MOUSEBUTTONDOWN);
 		return true;
 	} 
 
@@ -318,7 +321,6 @@ void PlayMode::update(float elapsed) {
 
 	if(!notification_active) {
 
-		printf("a\n");
 		// update food visuals
 	{
 		size_t n_strawberries = int((totalFood + 199.f) / 200.f);
@@ -353,7 +355,6 @@ void PlayMode::update(float elapsed) {
 			}
 		}
 	}
-	printf("b5\n");
 
 	// Move some crickets randomly
 	{
@@ -414,20 +415,15 @@ void PlayMode::update(float elapsed) {
 		}
 		assert(numBabyCrickets + numMatureCrickets + numDeadCrickets == Crickets.size());
 	}
-	printf("b4\n");
 
 	//update disease rate if we have too many dead crickets in the environment
 	if ((uint64_t)(total_elapsed)%2 == 0)
 	{
-		printf("inside if\n");
 		auto is_sick = [=, *this](){
 			return uint(rand() % 2000 + 1) < 8*numDeadCrickets/Crickets.size();
 		};
-		printf("inside if 2\n");
-		printf("size = %zu\n", Crickets.size());
 
 		for( Cricket &cricket: Crickets) {
-			printf("inside loop\n");
 			if(cricket.is_dead()) {
 				continue;
 			}
@@ -436,11 +432,7 @@ void PlayMode::update(float elapsed) {
 				kill_cricket(cricket);
 			}
 		}
-		printf("after loop\n");
 	}
-	printf("b3\n");
-	printf("b3\n");
-	printf("b3\n");
 	// Set sounds
 	{
 		// Stop / start chirping sounds if no crickets
@@ -455,7 +447,6 @@ void PlayMode::update(float elapsed) {
 			}
 		}
 	}
-	printf("b2\n");
 
 	//update food and starvation
 	if ((uint64_t)(total_elapsed)%2 == 0)
@@ -479,7 +470,6 @@ void PlayMode::update(float elapsed) {
 		}
 		totalFood = std::max(0.f, totalFood - (numBabyCrickets + numMatureCrickets) * cricketEatingRate);
 	}
-	printf("b1\n");
 
 	//move camera:
 	{
@@ -507,6 +497,20 @@ void PlayMode::update(float elapsed) {
 	}
 
 	
+	} else {
+
+		printf("space.downs = %d, letter_counter = %zu, total_letters = %zu\n", space.downs, letter_counter, total_letters);
+		if(space.downs && letter_counter < total_letters) {
+			letter_counter = total_letters;
+		} else if(space.downs) {
+			hide_notification();
+		} else {
+			current_elapsed += elapsed;
+			if(current_elapsed >= max_elapsed) {
+				letter_counter++;
+				current_elapsed = 0.0;
+			}
+		}
 	}
 
 	if ((totalFood == 0 && totalMoney < foodPrice) ||  (totalMoney < eggPrice && numMatureCrickets == 0)){
@@ -521,6 +525,7 @@ void PlayMode::update(float elapsed) {
 	right.downs = 0;
 	up.downs = 0;
 	down.downs = 0;
+	space.downs = 0;
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
@@ -628,7 +633,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		GL_ERRORS();
 		draw_filled_rect(glm::vec2(-0.5f +  (eps1 + eps2) / aspect,-0.5f + eps1 + eps3), glm::vec2(0.5f - (eps1 + eps3)  / aspect, 0.5f - (eps1 + eps2)), glm::vec4(227.f / 256.f, 213.f / 256.f, 184.f / 256.f, 1.f));
 		GL_ERRORS();
-		draw_text_lines(drawable_size,-0.8,0.8);
+		draw_text_lines(drawable_size,-0.6 , 0.4);
 		GL_ERRORS();
 		glDisable(GL_DEPTH_TEST);
 		GL_ERRORS();
@@ -644,16 +649,19 @@ void PlayMode::show_notification(std::string file_name) {
 	notification_text = std::vector<std::string>();
 
 	uint start=0, len=0;
+	total_letters = 0;
 	for(char c:text) {
 		len++;
 		if(len >= 50 && c == ' ') {
 			notification_text.push_back(text.substr(start,len));
 			start += len;
+			total_letters += len;
 			len = 0;
 		}
 	}
 	if(start < text.size()) {
 		notification_text.push_back(text.substr(start));
+		total_letters += text.size() - start;
 	}
 }
 

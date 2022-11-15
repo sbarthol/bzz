@@ -45,7 +45,7 @@ struct PlayMode : Mode {
 	struct Button {
 		uint8_t downs = 0;
 		uint8_t pressed = 0;
-	} left, right, down, up;
+	} left, right, down, up, space;
 
 
 	struct Cricket {
@@ -107,7 +107,10 @@ struct PlayMode : Mode {
 	void draw_text_line(std::string s, glm::uvec2 const &drawable_size, float x, float y);
 	void draw_text_lines(glm::uvec2 const &drawable_size, float x, float y);
 	std::string load_text_from_file(std::string filename);
+	size_t total_letters{0};
 	size_t letter_counter{0};
+	float current_elapsed = 0.0;
+	float max_elapsed = 0.02;
 
 	Scene::Transform *first_cricket; 
 	std::vector<Cricket> Crickets;
