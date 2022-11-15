@@ -255,7 +255,7 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
   /* Create hb-ft font. */
   hb_font = hb_ft_font_create (ft_face, NULL);
 
-	show_notification(data_path("../scenes/text/intro.txt"));
+	schedule_notification(data_path("../scenes/text/intro.txt"), 1.5);
 
 }
 
@@ -318,6 +318,16 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void PlayMode::update(float elapsed) {
 	total_elapsed += elapsed;
+
+	if(notif_pq.size() && !notification_active) {
+		auto top = notif_pq.top();
+		float t = -top.first;
+		std::string filename = top.second;
+		if(t <= total_elapsed) {
+			notif_pq.pop();
+			display_notification(filename);
+		}
+	}
 
 	if(!notification_active) {
 
@@ -502,7 +512,7 @@ void PlayMode::update(float elapsed) {
 		if(space.downs && letter_counter < total_letters) {
 			letter_counter = total_letters;
 		} else if(space.downs) {
-			hide_notification();
+			hide_current_notification();
 		} else {
 			current_elapsed += elapsed;
 			if(current_elapsed >= max_elapsed) {
@@ -640,9 +650,8 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	}
 }
 
-void PlayMode::show_notification(std::string file_name) {
-
-	std:: string text = load_text_from_file(file_name);
+void PlayMode::display_notification(std::string filename) {
+	std:: string text = load_text_from_file(filename);
 
 	notification_active = true;
 	notification_text = std::vector<std::string>();
@@ -658,7 +667,7 @@ void PlayMode::show_notification(std::string file_name) {
 			continue;
 		}
 		len++;
-		if((len >= 40 && c == ' ') || c=='\n') {
+		if((len >= 37 && c == ' ') || c=='\n') {
 			notification_text.push_back(text.substr(start,len));
 			start += len;
 			total_letters += len;
@@ -671,9 +680,15 @@ void PlayMode::show_notification(std::string file_name) {
 	}
 }
 
-void PlayMode::hide_notification() {
+void PlayMode::schedule_notification(std::string filename, float in_time) {
+	notif_pq.push(make_pair(-total_elapsed - in_time, filename));
+}
+
+void PlayMode::hide_current_notification() {
 	notification_active = false;
 	notification_text = std::vector<std::string>();
+	letter_counter = 0;
+	current_elapsed = 0;
 	if (gameOver){
 		exit(0);
 	}
@@ -761,6 +776,10 @@ bool buy(T quantity, float price, T &total_quantity, float &total_money) {
 
 bool PlayMode::buy_food() {
 	std::cout << "buy_food" << std::endl;
+	if(!first_time_food) {
+		first_time_food = true;
+		schedule_notification(data_path("../scenes/text/first_time_food.txt"), 2);
+	}
 	const float unitFood = foodPrice;
 	const float unitPrice = 10;
 

@@ -14,6 +14,7 @@
 
 #include <hb.h>
 #include <hb-ft.h>
+#include <queue>
 
 
 struct Popup_UI {
@@ -94,8 +95,10 @@ struct PlayMode : Mode {
 	void draw_filled_rect(glm::vec2 lower_left, glm::vec2 upper_right, glm::vec4 color);
 	
 	// Notification
-	void show_notification(std::string text);
-	void hide_notification();
+	std::priority_queue<std::pair<float, std::string>> notif_pq;
+	void display_notification(std::string filename);
+	void schedule_notification(std::string filename, float in_time);
+	void hide_current_notification();
 	bool notification_active = false;
 	std::vector<std::string> notification_text;
 
@@ -111,6 +114,9 @@ struct PlayMode : Mode {
 	size_t letter_counter{0};
 	float current_elapsed = 0.0;
 	float max_elapsed = 0.02;
+
+	// Tutorial
+	bool first_time_food = false; 
 
 	Scene::Transform *first_cricket; 
 	std::vector<Cricket> Crickets;
