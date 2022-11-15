@@ -13,6 +13,7 @@
 
 #include <random>
 #include <unordered_set>
+#include <fstream>
 
 int PlayMode::Cricket::seq = 0;
 
@@ -199,11 +200,68 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
   glLinkProgram(rect_program);
 	GL_ERRORS();
 
-	show_notification("Welcome to the cricket game. Try to stay alive. This is some placeholder text. There will be more soon. Click anywhere on the screen to continue.");
+	VERTEX_SHADER = ""
+        "#version 330\n"
+        "in vec4 position;\n"
+        "out vec2 texCoords;\n"
+        "void main(void) {\n"
+        "    gl_Position = vec4(position.xy, 0, 1);\n"
+        "    texCoords = position.zw;\n"
+        "}\n";
+
+
+	FRAGMENT_SHADER = ""
+        "#version 330\n"
+        "uniform sampler2D tex;\n"
+        "in vec2 texCoords;\n"
+        "out vec4 fragColor;\n"
+				"const vec4 color = vec4(0.388, 0.765, 0.196, 1);\n"
+        "void main(void) {\n"
+        "    fragColor = vec4(1, 1, 1, texture(tex, texCoords).r) * color;\n"
+        "}\n";
+
+	vs = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vs, 1, &VERTEX_SHADER, 0);
+  glCompileShader(vs);
+	GL_ERRORS();
+
+  fs = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fs, 1, &FRAGMENT_SHADER, 0);
+  glCompileShader(fs);
+	GL_ERRORS();
+
+  text_program = glCreateProgram();
+  glAttachShader(text_program, vs);
+  glAttachShader(text_program, fs);
+  glLinkProgram(text_program);
+	GL_ERRORS();
+
+	// Initialize text data structures
+	#define FONT_SIZE 32
+
+	// https://www.1001fonts.com/risque-font.html
+	std::string fontfile = data_path("../scenes/Risque-Regular.ttf");
+
+	/* Initialize FreeType and create FreeType font face. */
+  FT_Error ft_error;
+
+  if ((ft_error = FT_Init_FreeType (&ft_library)))
+    abort();
+  if ((ft_error = FT_New_Face (ft_library, fontfile.c_str(), 0, &ft_face)))
+    abort();
+  if ((ft_error = FT_Set_Char_Size (ft_face, FONT_SIZE*64, FONT_SIZE*64, 0, 0)))
+    abort();
+
+  /* Create hb-ft font. */
+  hb_font = hb_ft_font_create (ft_face, NULL);
+
+	//show_notification(data_path("../scenes/intro"));
 
 }
 
 PlayMode::~PlayMode() {
+	FT_Done_Face(ft_face);
+	FT_Done_FreeType(ft_library);
 }
 
 bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
@@ -259,6 +317,8 @@ void PlayMode::update(float elapsed) {
 	total_elapsed += elapsed;
 
 	if(!notification_active) {
+
+		printf("a\n");
 		// update food visuals
 	{
 		size_t n_strawberries = int((totalFood + 199.f) / 200.f);
@@ -293,6 +353,7 @@ void PlayMode::update(float elapsed) {
 			}
 		}
 	}
+	printf("b5\n");
 
 	// Move some crickets randomly
 	{
@@ -353,15 +414,20 @@ void PlayMode::update(float elapsed) {
 		}
 		assert(numBabyCrickets + numMatureCrickets + numDeadCrickets == Crickets.size());
 	}
+	printf("b4\n");
 
 	//update disease rate if we have too many dead crickets in the environment
 	if ((uint64_t)(total_elapsed)%2 == 0)
 	{
+		printf("inside if\n");
 		auto is_sick = [=, *this](){
 			return uint(rand() % 2000 + 1) < 8*numDeadCrickets/Crickets.size();
 		};
+		printf("inside if 2\n");
+		printf("size = %zu\n", Crickets.size());
 
 		for( Cricket &cricket: Crickets) {
+			printf("inside loop\n");
 			if(cricket.is_dead()) {
 				continue;
 			}
@@ -370,7 +436,11 @@ void PlayMode::update(float elapsed) {
 				kill_cricket(cricket);
 			}
 		}
+		printf("after loop\n");
 	}
+	printf("b3\n");
+	printf("b3\n");
+	printf("b3\n");
 	// Set sounds
 	{
 		// Stop / start chirping sounds if no crickets
@@ -385,6 +455,7 @@ void PlayMode::update(float elapsed) {
 			}
 		}
 	}
+	printf("b2\n");
 
 	//update food and starvation
 	if ((uint64_t)(total_elapsed)%2 == 0)
@@ -408,6 +479,7 @@ void PlayMode::update(float elapsed) {
 		}
 		totalFood = std::max(0.f, totalFood - (numBabyCrickets + numMatureCrickets) * cricketEatingRate);
 	}
+	printf("b1\n");
 
 	//move camera:
 	{
@@ -433,11 +505,13 @@ void PlayMode::update(float elapsed) {
 		glm::vec3 frame_at = frame[3];
 		Sound::listener.set_position_right(frame_at, frame_right, 1.0f / 60.0f);
 	}
+
+	
 	}
 
 	if ((totalFood == 0 && totalMoney < foodPrice) ||  (totalMoney < eggPrice && numMatureCrickets == 0)){
 		gameOver = true;
-		show_notification("Game Over");
+		//show_notification("Game Over");
 
 		
 	}
@@ -551,26 +625,21 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		const float eps2 = 0.01;
 		const float eps3 = 0.02;
 		draw_filled_rect(glm::vec2(-0.5f + eps1 / aspect,-0.5f + eps1), glm::vec2(0.5f - eps1 / aspect, 0.5f - eps1), glm::vec4(138.f / 256.f, 119.f / 256.f, 67.f / 256.f, 1.f));
+		GL_ERRORS();
 		draw_filled_rect(glm::vec2(-0.5f +  (eps1 + eps2) / aspect,-0.5f + eps1 + eps3), glm::vec2(0.5f - (eps1 + eps3)  / aspect, 0.5f - (eps1 + eps2)), glm::vec4(227.f / 256.f, 213.f / 256.f, 184.f / 256.f, 1.f));
+		GL_ERRORS();
+		draw_text_lines(drawable_size,-0.8,0.8);
+		GL_ERRORS();
 		glDisable(GL_DEPTH_TEST);
-		DrawLines lines(glm::mat4(
-			1.0f / aspect, 0.0f, 0.0f, 0.0f,
-			0.0f, 1.0f, 0.0f, 0.0f,
-			0.0f, 0.0f, 1.0f, 0.0f,
-			0.0f, 0.0f, 0.0f, 1.0f
-		));
+		GL_ERRORS();
 
-		constexpr float H = 0.15f;
-		for(size_t i=0;i<notification_text.size();i++) {
-			lines.draw_text(notification_text[i],
-			glm::vec3(-aspect + 0.4, 1.0 - 0.4 - (H + 0.04) * i, 0.f),
-			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
-		}
 	}
 }
 
-void PlayMode::show_notification(std::string text) {
+void PlayMode::show_notification(std::string file_name) {
+
+	std:: string text = load_text_from_file(file_name);
+
 	notification_active = true;
 	notification_text = std::vector<std::string>();
 
@@ -778,3 +847,166 @@ void Popup_UI::draw(DrawLines &lines) {
 
 	anchor.x += 0.5;
 }
+
+std::string PlayMode::load_text_from_file(std::string filename) {
+	std::string text = "";
+  std::ifstream input(filename);
+  for (std::string line; getline(input, line);) {
+		text += line;
+  }
+	return text;
+}
+
+void PlayMode::draw_text_lines(glm::uvec2 const &drawable_size, float x, float y) {
+
+	GLuint vbo{0}, vao{0}, texture{0}, sampler{0};
+
+	GL_ERRORS();
+	glUseProgram(text_program);
+	GL_ERRORS();
+
+	GLuint texUniform = glGetUniformLocation(text_program, "tex");
+	glUniform1i(texUniform, 0);
+
+	glGenBuffers(1, &vbo);
+  glGenVertexArrays(1, &vao);
+  glGenTextures(1, &texture);
+  glGenSamplers(1, &sampler);
+	GL_ERRORS();
+  glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	GL_ERRORS();
+
+	// Set some GL state
+  glEnable(GL_BLEND);
+  glDisable(GL_CULL_FACE);
+  glDisable(GL_DEPTH_TEST);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glClearColor(0, 0, 0, 1);
+	GL_ERRORS();
+
+	GLuint fill_color_loc = glGetUniformLocation(text_program, "fillColor");
+	GL_ERRORS();
+	const GLfloat black[4] = {0.f, 0.f, 0.f, 1.0};
+	glUniform4fv(fill_color_loc, 1, black);
+	GL_ERRORS();
+
+	// Bind stuff
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glBindSampler(0, sampler);
+  glBindVertexArray(vao);
+  glEnableVertexAttribArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	GL_ERRORS();
+
+	size_t counter = 0;
+	for( size_t i=0;i<notification_text.size();i++) {
+		std::string line = notification_text[i];
+		if (counter + line.size() <= letter_counter) {
+			counter += line.size();
+			draw_text_line(line,drawable_size,x,y);
+		} else if (counter < letter_counter) {
+			draw_text_line(line.substr(0,letter_counter - counter),drawable_size,x,y);
+			counter = letter_counter;
+		}
+		
+		y -= ft_face->size->metrics.height / (64.f * (float)drawable_size.y);
+	}
+
+	glDisable(GL_BLEND);
+	glUseProgram(0);
+}
+
+// https://gedge.ca/blog/2013-12-08-opengl-text-rendering-with-freetype
+// https://www.freetype.org/freetype2/docs/tutorial/step1.html
+// https://github.com/harfbuzz/harfbuzz-tutorial/blob/master/hello-harfbuzz-freetype.c
+void PlayMode::draw_text_line(std::string s, glm::uvec2 const &drawable_size, float current_x, float current_y) {
+
+  const char *text = s.c_str();
+
+	/* Create hb-buffer and populate. */
+  hb_buffer_t *hb_buffer = hb_buffer_create ();
+  hb_buffer_add_utf8 (hb_buffer, text, -1, 0, -1);
+  hb_buffer_guess_segment_properties (hb_buffer);
+
+  /* Shape it! */
+  hb_shape (hb_font, hb_buffer, NULL, 0);
+
+  /* Get glyph information and positions out of the buffer. */
+  unsigned int len = hb_buffer_get_length (hb_buffer);
+  hb_glyph_info_t *info = hb_buffer_get_glyph_infos (hb_buffer, NULL);
+  hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (hb_buffer, NULL);
+
+  /* And converted to absolute positions. */
+  {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1); 
+
+    for (unsigned int i = 0; i < len; i++)
+    {
+      hb_codepoint_t glyph_index   = info[i].codepoint;
+
+			/* load glyph image into the slot (erase previous one) */
+  		FT_Error error = FT_Load_Glyph( ft_face, glyph_index, FT_LOAD_DEFAULT );
+  		if ( error )
+    		continue;  /* ignore errors */
+
+			/* convert to an anti-aliased bitmap */
+  		error = FT_Render_Glyph( ft_face->glyph, FT_RENDER_MODE_NORMAL );
+  		if ( error )
+    		continue;
+
+
+      float x_position = current_x + (pos[i].x_offset + 400 * 64.f) / (64.f * drawable_size.x);
+      float y_position = current_y + ((pos[i].y_offset / 64.f) - ((ft_face->bbox.yMax - ft_face->bbox.yMin) - ft_face->glyph->metrics.horiBearingY) / 64.f) / (drawable_size.y);
+
+			FT_Bitmap *bm = &ft_face->glyph->bitmap;
+			// FT_PIXEL_MODE_GRAY
+			// each pixel stored in 8 bits
+
+    	glTexImage2D(
+      	GL_TEXTURE_2D,
+        0,
+        GL_R8,
+        ft_face->glyph->bitmap.width,
+        ft_face->glyph->bitmap.rows,
+        0,
+        GL_RED,
+        GL_UNSIGNED_BYTE,
+        ft_face->glyph->bitmap.buffer
+    	);
+
+      const float w = bm->width / (float)drawable_size.x;
+      const float h = bm->rows/ (float)drawable_size.y;
+
+      struct {
+      	float x, y, s, t;
+      } data[6] = {
+      	{x_position    , y_position    , 0, 0},
+        {x_position    , y_position - h, 0, 1},
+        {x_position + w, y_position    , 1, 0},
+        {x_position + w, y_position    , 1, 0},
+        {x_position    , y_position - h, 0, 1},
+        {x_position + w, y_position - h, 1, 1}
+      };
+
+      glBufferData(GL_ARRAY_BUFFER, 24*sizeof(float), data, GL_DYNAMIC_DRAW);
+      glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+      glDrawArrays(GL_TRIANGLES, 0, 6);
+
+      current_x += (pos[i].x_advance) / (64.f * drawable_size.x);
+      current_y += pos[i].y_advance / (64.f * drawable_size.y);
+
+			assert(current_x <= 1.0);
+			assert(current_y <= 1.0);
+    }
+  }
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+
+	GL_ERRORS();
+
+}
+

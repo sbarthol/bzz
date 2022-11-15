@@ -12,6 +12,9 @@
 #include <list>
 #include <chrono>
 
+#include <hb.h>
+#include <hb-ft.h>
+
 
 struct Popup_UI {
 	glm::vec2 anchor;
@@ -95,6 +98,16 @@ struct PlayMode : Mode {
 	void hide_notification();
 	bool notification_active = false;
 	std::vector<std::string> notification_text;
+
+	// Text drawing
+	GLuint text_program;
+	FT_Face ft_face;
+	FT_Library ft_library;
+	hb_font_t *hb_font;
+	void draw_text_line(std::string s, glm::uvec2 const &drawable_size, float x, float y);
+	void draw_text_lines(glm::uvec2 const &drawable_size, float x, float y);
+	std::string load_text_from_file(std::string filename);
+	size_t letter_counter{0};
 
 	Scene::Transform *first_cricket; 
 	std::vector<Cricket> Crickets;
