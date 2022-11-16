@@ -187,18 +187,15 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 	vs = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vs, 1, &VERTEX_SHADER, 0);
   glCompileShader(vs);
-	GL_ERRORS();
 
   fs = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fs, 1, &FRAGMENT_SHADER, 0);
   glCompileShader(fs);
-	GL_ERRORS();
 
   rect_program= glCreateProgram();
   glAttachShader(rect_program, vs);
   glAttachShader(rect_program, fs);
   glLinkProgram(rect_program);
-	GL_ERRORS();
 
 	VERTEX_SHADER = ""
         "#version 330\n"
@@ -254,6 +251,49 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 
   /* Create hb-ft font. */
   hb_font = hb_ft_font_create (ft_face, NULL);
+
+	// png program
+	VERTEX_SHADER = ""
+        "#version 330\n"
+        "in vec4 position;\n"
+        "out vec2 texCoords;\n"
+        "void main(void) {\n"
+        "    gl_Position = vec4(position.xy, 0, 1);\n"
+        "    texCoords = position.zw;\n"
+        "}\n";
+
+
+	FRAGMENT_SHADER = ""
+        "#version 330\n"
+        "uniform sampler2D tex;\n"
+        "in vec2 texCoords;\n"
+        "out vec4 fragColor;\n"
+        "void main(void) {\n"
+				"    fragColor = texture(tex, texCoords);\n"
+        "}\n";
+
+	vs = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vs, 1, &VERTEX_SHADER, 0);
+  glCompileShader(vs);
+	GL_ERRORS();
+
+  fs = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fs, 1, &FRAGMENT_SHADER, 0);
+  glCompileShader(fs);
+	GL_ERRORS();
+
+  png_program = glCreateProgram();
+  glAttachShader(png_program, vs);
+  glAttachShader(png_program, fs);
+  glLinkProgram(png_program);
+	GL_ERRORS();
+
+	// load some png textures
+	int ret = png_to_gl_texture(&test_png, data_path("../scenes/screenshot.png"));
+  if(ret) {
+  	printf("Cannot load texture, error code %d.\n", ret);
+    abort();
+  }
 
 	schedule_notification(data_path("../scenes/text/intro.txt"), 1.5);
 
@@ -643,6 +683,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	}
 
 	if (notification_active) {
+
 		draw_filled_rect(glm::vec2(-1.f,-1.f), glm::vec2(1.f, 1.f), glm::vec4(0.f, 0.f, 0.f, 0.4f));
 		draw_filled_rect(glm::vec2(-0.5f,-0.5f), glm::vec2(0.5f, 0.5f), glm::vec4(45.f / 256.f, 32.f / 256.f, 107.f / 256.f, 1.f));
 		float aspect = float(drawable_size.x) / float(drawable_size.y);
@@ -659,6 +700,8 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		GL_ERRORS();
 
 	}
+
+	draw_textured_quad(&test_png, 0, 0, drawable_size);
 }
 
 void PlayMode::display_notification(std::string filename) {
@@ -1055,3 +1098,155 @@ void PlayMode::draw_text_line(std::string s, glm::uvec2 const &drawable_size, fl
 
 }
 
+// https://dcemulation.org/index.php?title=Loading_PNG_images_as_OpenGL_textures
+int PlayMode::png_to_gl_texture(struct texture * tex, std::string filename) {
+
+	#define CLEANUP(x) { ret = (x); goto cleanup; }
+
+	int ret = 0;
+	FILE * file = 0;
+	uint8_t * data = 0;
+	png_structp parser = 0;
+	png_infop info = 0;
+	png_bytep * row_pointers = 0;
+	int rowbytes;
+	GLenum texture_format;
+
+	png_uint_32 w, h;
+	int bit_depth;
+	int color_type;
+
+
+	if(!tex || !filename.c_str()) {
+		CLEANUP(1);
+	}
+
+	file = fopen(filename.c_str(), "rb");
+	if(!file) {
+		CLEANUP(2);
+	}
+
+	parser = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
+	if(!parser) {
+		CLEANUP(3);
+	}
+
+	info = png_create_info_struct(parser);
+	if(!info) {
+		CLEANUP(4);
+	}
+
+	if(setjmp(png_jmpbuf(parser))) {
+		CLEANUP(5);
+	}
+
+	png_init_io(parser, file);
+	png_read_info(parser, info);
+	png_get_IHDR(parser, info, &w, &h, &bit_depth, &color_type, 0, 0, 0);
+
+	if((w & (w-1)) || (h & (h-1)) || w < 8 || h < 8) {
+		CLEANUP(6);
+	}
+
+	if(png_get_valid(parser, info, PNG_INFO_tRNS) || (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8) || color_type == PNG_COLOR_TYPE_PALETTE) {
+		png_set_expand(parser);
+	}
+	if(bit_depth == 16) {
+		png_set_strip_16(parser);
+	}
+	if(color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA) {
+		png_set_gray_to_rgb(parser);
+	}
+	png_read_update_info(parser, info);
+
+	rowbytes = png_get_rowbytes(parser, info);
+	rowbytes += 3 - ((rowbytes-1) % 4); // align to 4 bytes
+
+	data = (uint8_t*)malloc(rowbytes * h * sizeof(png_byte) + 15);
+	if(!data) {
+		CLEANUP(7);
+	}
+
+	row_pointers = (png_bytep*)malloc(h * sizeof(png_bytep));
+	if(!row_pointers) {
+		CLEANUP(8);
+  }
+
+	// set the individual row_pointers to point at the correct offsets of data
+	for(png_uint_32 i = 0; i < h; ++i) {
+		row_pointers[h - 1 - i] = data + i * rowbytes;
+	}
+
+	png_read_image(parser, row_pointers);
+
+	// Generate the OpenGL texture object
+	GLuint texture_id;
+	glGenTextures(1, &texture_id);
+	GL_ERRORS();
+	glBindTexture(GL_TEXTURE_2D, texture_id);
+	GL_ERRORS();
+	texture_format = (color_type & PNG_COLOR_MASK_ALPHA) ? GL_RGBA : GL_RGB;
+	glTexImage2D(GL_TEXTURE_2D, 0, texture_format, w, h, 0, texture_format, GL_UNSIGNED_BYTE, data);
+	GL_ERRORS();
+
+	tex->id = texture_id;
+	tex->w = w;
+	tex->h = h;
+	tex->format = texture_format;
+	tex->min_filter = tex->mag_filter = GL_NEAREST;
+
+
+cleanup:
+	if(parser) {
+		png_destroy_read_struct(&parser, info ? &info : 0, 0);
+	}
+
+	if(row_pointers) {
+		free(row_pointers);
+	}
+
+	if(ret && data) {
+		free(data);
+	}
+
+	if(file) {
+		fclose(file);
+	}
+
+	return ret;
+}
+
+void PlayMode::draw_textured_quad(struct texture * tex, float x0, float y0, glm::uvec2 const &drawable_size) {
+	GLuint vbo{0}, vao{0};
+
+	glUseProgram(png_program);
+	glGenBuffers(1, &vbo);
+  glGenVertexArrays(1, &vao);
+
+	// Bind stuff
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, tex->id);
+  glBindVertexArray(vao);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	float x1 = x0 + (float)tex->w / drawable_size.x;
+	float y1 = y0 + (float)tex->h / drawable_size.y;
+
+	float const vertex_data[] = {
+		/* 2D Coordinate, texture coordinate */
+		x0, y1,  0.f, 1.f,
+		x0, y0,  0.f, 0.f,
+		x1, y1,  1.f, 1.f,
+		x1, y0,  1.f, 0.f,
+	};
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, tex->min_filter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, tex->mag_filter);
+
+	glBufferData(GL_ARRAY_BUFFER, 16*sizeof(float), vertex_data, GL_DYNAMIC_DRAW);
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	
+	glUseProgram(0);
+}

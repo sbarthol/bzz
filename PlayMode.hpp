@@ -1,4 +1,5 @@
 #include "Mode.hpp"
+#include <png.h>
 
 #include "Scene.hpp"
 #include "Sound.hpp"
@@ -135,7 +136,19 @@ struct PlayMode : Mode {
 	size_t foodPrice = 200;
 	bool gameOver = false;
 
-	
+	// PNG
+	struct texture {
+   GLuint id;
+   GLenum format;
+   GLenum min_filter;
+   GLenum mag_filter;
+   uint16_t w, h;
+ 	} test_png;
+	int png_to_gl_texture(struct texture * tex, std::string filename);
+	void draw_textured_quad(struct texture * tex, float x0, float y0, glm::uvec2 const &drawable_size);
+	GLuint png_program;
+
+
 
 	// Sound
 	std::shared_ptr< Sound::PlayingSample > chirping_loop;
