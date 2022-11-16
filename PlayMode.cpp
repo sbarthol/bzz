@@ -351,11 +351,15 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			return true;
 		}
 	} else if (evt.type == SDL_MOUSEBUTTONDOWN) {
-		int x, y;
-		SDL_GetMouseState(&x, &y);
-		std::cout << x << ", " << y << std::endl;
-		game_UI.update(x, y, evt.type == SDL_MOUSEBUTTONDOWN);
-		return true;
+		if(!notification_active) {
+			int x, y;
+			SDL_GetMouseState(&x, &y);
+			std::cout << x << ", " << y << std::endl;
+			game_UI.update(x, y, evt.type == SDL_MOUSEBUTTONDOWN);
+			return true;
+		} else {
+			return false;
+		}
 	} 
 
 	return false;
