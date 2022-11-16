@@ -14,6 +14,9 @@ How To Play:
 
 Resources:
 - Visual Asset
+    - Strawberry: https://www.freepik.com/free-vector/collection-mixed-pixelated-fruits_2632369.htm#query=strawberry%20pixel%20art&position=0&from_view=search&track=sph
+    - Egg: https://www.flaticon.com/free-icons/humidity
+    - Dollar wad: http://pixelartmaker.com/art/6548026ccecefd4
     - Cricket - https://sketchfab.com/3d-models/basic-cricket-4ca488a5b4724aaf86ad0b07d41a5e8e#download
 
 - Audio:

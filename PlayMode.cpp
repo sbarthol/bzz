@@ -304,6 +304,16 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
   }
+	ret = png_to_gl_texture(&egg, data_path("../scenes/egg.png"));
+  if(ret) {
+  	printf("Cannot load texture, error code %d.\n", ret);
+    abort();
+  }
+	ret = png_to_gl_texture(&dollars, data_path("../scenes/dollars.png"));
+  if(ret) {
+  	printf("Cannot load texture, error code %d.\n", ret);
+    abort();
+  }
 
 	schedule_notification(data_path("../scenes/text/intro.txt"), 1.5);
 
@@ -696,6 +706,15 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		
 	}
 
+	draw_textured_quad(&button_unclicked, -0.9, 0.5, drawable_size);
+	draw_textured_quad(&strawberry, -0.9, 0.5, drawable_size);
+	draw_textured_quad(&button_clicked, -0.9 + 0.2, 0.5, drawable_size);
+	draw_textured_quad(&strawberry, -0.9 + 0.2, 0.5, drawable_size);
+	draw_textured_quad(&button_unclicked, -0.9, 0.1, drawable_size);
+	draw_textured_quad(&egg, -0.9, 0.1, drawable_size);
+	draw_textured_quad(&button_unclicked, -0.9, -0.3, drawable_size);
+	draw_textured_quad(&dollars, -0.9, -0.3, drawable_size);
+
 	if (notification_active) {
 
 		draw_filled_rect(glm::vec2(-1.f,-1.f), glm::vec2(1.f, 1.f), glm::vec4(0.f, 0.f, 0.f, 0.4f));
@@ -714,11 +733,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		GL_ERRORS();
 
 	}
-
-	draw_textured_quad(&button_clicked, -0.9, 0.5, drawable_size);
-	draw_textured_quad(&strawberry, -0.9, 0.5, drawable_size);
-	draw_textured_quad(&button_unclicked, -0.9 + 0.2, 0.5, drawable_size);
-	draw_textured_quad(&strawberry, -0.9 + 0.2, 0.5, drawable_size);
 }
 
 void PlayMode::display_notification(std::string filename) {
