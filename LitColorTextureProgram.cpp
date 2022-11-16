@@ -24,21 +24,15 @@ Load< LitColorTextureProgram > lit_color_texture_program(LoadTagEarly, []() -> L
 	*/
 
 	//make a 1-pixel white texture to bind by default:
-	GLuint tex;
-	glGenTextures(1, &tex);
+	
+	
 
-	glBindTexture(GL_TEXTURE_2D, tex);
-	std::vector< glm::u8vec4 > tex_data(1, glm::u8vec4(0xff));
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
+	glBindTexture(lit_color_texture_program_pipeline.textures[0].target, lit_color_texture_program_pipeline.textures[0].texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glBindTexture(GL_TEXTURE_2D, 0);
-
-
-	lit_color_texture_program_pipeline.textures[0].texture = tex;
-	lit_color_texture_program_pipeline.textures[0].target = GL_TEXTURE_2D;
 
 	return ret;
 });
@@ -127,12 +121,12 @@ LitColorTextureProgram::LitColorTextureProgram() {
 	LIGHT_CUTOFF_float = glGetUniformLocation(program, "LIGHT_CUTOFF");
 
 
-	GLuint TEX_sampler2D = glGetUniformLocation(program, "TEX");
+	//GLuint TEX_sampler2D = glGetUniformLocation(program, "TEX");
 
 	//set TEX to always refer to texture binding zero:
 	glUseProgram(program); //bind program -- glUniform* calls refer to this program now
 
-	glUniform1i(TEX_sampler2D, 0); //set TEX to sample from GL_TEXTURE0
+	// glUniform1i(TEX_sampler2D, 0); //set TEX to sample from GL_TEXTURE0
 
 	glUseProgram(0); //unbind program -- glUniform* calls refer to ??? now
 }

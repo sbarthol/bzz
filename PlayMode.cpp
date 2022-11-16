@@ -38,6 +38,14 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		drawable.pipeline.start = mesh.start;
 		drawable.pipeline.count = mesh.count;
 
+		struct PlayMode::texture tex;
+		int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/strawberry.png"));
+  	if(ret) {
+  		printf("Cannot load texture, error code %d.\n", ret);
+    	abort();
+  	}
+		drawable.pipeline.textures[0].texture = tex.id;
+
 	});
 });
 

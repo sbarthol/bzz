@@ -144,7 +144,7 @@ struct PlayMode : Mode {
    GLenum mag_filter;
    uint16_t w, h;
  	} strawberry, egg, dollars, button_clicked, button_unclicked, board;
-	int png_to_gl_texture(struct texture * tex, std::string filename);
+	static int png_to_gl_texture(struct texture * tex, std::string filename);
 	void draw_textured_quad(struct texture * tex, float x0, float y0, glm::uvec2 const &drawable_size);
 	GLuint png_program;
 
