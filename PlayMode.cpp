@@ -314,6 +314,11 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
   }
+	ret = png_to_gl_texture(&board, data_path("../scenes/board.png"));
+  if(ret) {
+  	printf("Cannot load texture, error code %d.\n", ret);
+    abort();
+  }
 
 	schedule_notification(data_path("../scenes/text/intro.txt"), 1.5);
 
@@ -716,17 +721,8 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	draw_textured_quad(&dollars, -0.9, -0.3, drawable_size);
 
 	if (notification_active) {
-
 		draw_filled_rect(glm::vec2(-1.f,-1.f), glm::vec2(1.f, 1.f), glm::vec4(0.f, 0.f, 0.f, 0.4f));
-		draw_filled_rect(glm::vec2(-0.5f,-0.5f), glm::vec2(0.5f, 0.5f), glm::vec4(45.f / 256.f, 32.f / 256.f, 107.f / 256.f, 1.f));
-		float aspect = float(drawable_size.x) / float(drawable_size.y);
-		const float eps1 = 0.03;
-		const float eps2 = 0.01;
-		const float eps3 = 0.02;
-		draw_filled_rect(glm::vec2(-0.5f + eps1 / aspect,-0.5f + eps1), glm::vec2(0.5f - eps1 / aspect, 0.5f - eps1), glm::vec4(138.f / 256.f, 119.f / 256.f, 67.f / 256.f, 1.f));
-		GL_ERRORS();
-		draw_filled_rect(glm::vec2(-0.5f +  (eps1 + eps2) / aspect,-0.5f + eps1 + eps3), glm::vec2(0.5f - (eps1 + eps3)  / aspect, 0.5f - (eps1 + eps2)), glm::vec4(227.f / 256.f, 213.f / 256.f, 184.f / 256.f, 1.f));
-		GL_ERRORS();
+		draw_textured_quad(&board, -0.6f, -0.6f, drawable_size);
 		draw_text_lines(drawable_size,-0.58 , 0.36);
 		GL_ERRORS();
 		glDisable(GL_DEPTH_TEST);
@@ -752,7 +748,7 @@ void PlayMode::display_notification(std::string filename) {
 			continue;
 		}
 		len++;
-		if((len >= 37 && c == ' ') || c=='\n') {
+		if((len >= 45 && c == ' ') || c=='\n') {
 			notification_text.push_back(text.substr(start,len));
 			start += len;
 			total_letters += len;
