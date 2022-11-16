@@ -289,12 +289,17 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 	GL_ERRORS();
 
 	// load some png textures
-	int ret = png_to_gl_texture(&strawberry_button, data_path("../scenes/strawberry_button.png"));
+	int ret = png_to_gl_texture(&button_clicked, data_path("../scenes/button_clicked.png"));
   if(ret) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
   }
-	ret = png_to_gl_texture(&strawberry_button_clicked, data_path("../scenes/strawberry_button_clicked.png"));
+	ret = png_to_gl_texture(&button_unclicked, data_path("../scenes/button_unclicked.png"));
+  if(ret) {
+  	printf("Cannot load texture, error code %d.\n", ret);
+    abort();
+  }
+	ret = png_to_gl_texture(&strawberry, data_path("../scenes/strawberry.png"));
   if(ret) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
@@ -710,8 +715,10 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 	}
 
-	draw_textured_quad(&strawberry_button, -0.9, 0.5, drawable_size);
-	draw_textured_quad(&strawberry_button_clicked, -0.9 + 0.2, 0.5, drawable_size);
+	draw_textured_quad(&button_clicked, -0.9, 0.5, drawable_size);
+	draw_textured_quad(&strawberry, -0.9, 0.5, drawable_size);
+	draw_textured_quad(&button_unclicked, -0.9 + 0.2, 0.5, drawable_size);
+	draw_textured_quad(&strawberry, -0.9 + 0.2, 0.5, drawable_size);
 }
 
 void PlayMode::display_notification(std::string filename) {
