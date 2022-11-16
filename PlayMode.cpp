@@ -289,7 +289,12 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 	GL_ERRORS();
 
 	// load some png textures
-	int ret = png_to_gl_texture(&test_png, data_path("../scenes/screenshot.png"));
+	int ret = png_to_gl_texture(&strawberry_button, data_path("../scenes/strawberry_button.png"));
+  if(ret) {
+  	printf("Cannot load texture, error code %d.\n", ret);
+    abort();
+  }
+	ret = png_to_gl_texture(&strawberry_button_clicked, data_path("../scenes/strawberry_button_clicked.png"));
   if(ret) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
@@ -701,7 +706,8 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 	}
 
-	draw_textured_quad(&test_png, 0, 0, drawable_size);
+	draw_textured_quad(&strawberry_button, -0.9, 0.5, drawable_size);
+	draw_textured_quad(&strawberry_button_clicked, -0.9 + 0.2, 0.5, drawable_size);
 }
 
 void PlayMode::display_notification(std::string filename) {
@@ -1229,6 +1235,9 @@ void PlayMode::draw_textured_quad(struct texture * tex, float x0, float y0, glm:
   glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	float x1 = x0 + (float)tex->w / drawable_size.x;
 	float y1 = y0 + (float)tex->h / drawable_size.y;
 
@@ -1249,4 +1258,5 @@ void PlayMode::draw_textured_quad(struct texture * tex, float x0, float y0, glm:
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	
 	glUseProgram(0);
+	glDisable(GL_BLEND);
 }
