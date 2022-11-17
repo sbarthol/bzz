@@ -121,12 +121,12 @@ LitColorTextureProgram::LitColorTextureProgram() {
 	LIGHT_CUTOFF_float = glGetUniformLocation(program, "LIGHT_CUTOFF");
 
 
-	//GLuint TEX_sampler2D = glGetUniformLocation(program, "TEX");
+	GLuint TEX_sampler2D = glGetUniformLocation(program, "TEX");
 
 	//set TEX to always refer to texture binding zero:
 	glUseProgram(program); //bind program -- glUniform* calls refer to this program now
 
-	// glUniform1i(TEX_sampler2D, 0); //set TEX to sample from GL_TEXTURE0
+	glUniform1i(TEX_sampler2D, 0); //set TEX to sample from GL_TEXTURE0
 
 	glUseProgram(0); //unbind program -- glUniform* calls refer to ??? now
 }
