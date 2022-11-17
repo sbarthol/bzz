@@ -330,6 +330,15 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 
 	schedule_notification(data_path("../scenes/text/intro.txt"), 1.5);
 
+	// sampler
+	GLuint sampler{0};
+  glGenSamplers(1, &sampler);
+  glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glBindSampler(0, sampler);
+
 }
 
 PlayMode::~PlayMode() {
@@ -982,7 +991,7 @@ std::string PlayMode::load_text_from_file(std::string filename) {
 
 void PlayMode::draw_text_lines(glm::uvec2 const &drawable_size, float x, float y) {
 
-	GLuint vbo{0}, vao{0}, texture{0}, sampler{0};
+	GLuint vbo{0}, vao{0}, texture{0};
 
 	GL_ERRORS();
 	glUseProgram(text_program);
@@ -994,13 +1003,6 @@ void PlayMode::draw_text_lines(glm::uvec2 const &drawable_size, float x, float y
 	glGenBuffers(1, &vbo);
   glGenVertexArrays(1, &vao);
   glGenTextures(1, &texture);
-  glGenSamplers(1, &sampler);
-	GL_ERRORS();
-  glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	GL_ERRORS();
 
 	// Set some GL state
   glEnable(GL_BLEND);
@@ -1019,7 +1021,6 @@ void PlayMode::draw_text_lines(glm::uvec2 const &drawable_size, float x, float y
 	// Bind stuff
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);
-  glBindSampler(0, sampler);
   glBindVertexArray(vao);
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
