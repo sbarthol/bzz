@@ -41,7 +41,17 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Terrarium") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/strawberry.png"));
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/terrarium_tex.png"));
+  		if(ret) {
+  			printf("Cannot load texture, error code %d.\n", ret);
+    		abort();
+  		}
+			drawable.pipeline.textures[0].texture = tex.id;
+		} 
+		if(mesh_name == "Bedding") {
+			drawable.pipeline.blend = true;
+			struct PlayMode::texture tex;
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/terrarium_tex.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
