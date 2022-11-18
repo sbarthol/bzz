@@ -108,6 +108,16 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
   		}
 			drawable.pipeline.textures[0].texture = tex.id;
 		} 
+		if(mesh_name == "Fruit") {
+			drawable.pipeline.blend = true;
+			struct PlayMode::texture tex;
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/fruit.png"));
+  		if(ret) {
+  			printf("Cannot load texture, error code %d.\n", ret);
+    		abort();
+  		}
+			drawable.pipeline.textures[0].texture = tex.id;
+		} 
 	});
 });
 

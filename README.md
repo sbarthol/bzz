@@ -30,6 +30,7 @@ Resources:
     - Table: https://www.blenderkit.com/get-blenderkit/bf2e6b17-ed2a-472c-8031-aa9836b9570d/
     - Table texture: https://www.pngwing.com/en/free-png-bhgfy
     - Frame: https://www.kindpng.com/imgv/biibbb_gold-frame-png-file-painting-frame-png-transparent/
+    - Fruit bag texture: https://www.festfoods.com/shop/frozen/frozen_fruits/berries/dole_sliced_frozen_strawberries_14_oz_pouch/p/38655
 
 
 - Audio:
