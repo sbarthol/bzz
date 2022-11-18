@@ -27,6 +27,8 @@ Resources:
     - Wallpaper texture: https://www.pngegg.com/en/png-vclxa
     - Bag of flour: https://www.blenderkit.com/get-blenderkit/741ad44a-2b64-4a8f-8e56-cd5175881bb2/
     - Miracle Gro Garden Soil: https://www.lowes.com/pd/Miracle-Gro-Garden-Soil-All-Purpose-0-75-cu-ft-Garden-Soil/999929910
+    - Table: https://www.blenderkit.com/get-blenderkit/bf2e6b17-ed2a-472c-8031-aa9836b9570d/
+    - Table texture: https://www.pngwing.com/en/free-png-bhgfy
 
 
 - Audio:
