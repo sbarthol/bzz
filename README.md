@@ -24,6 +24,7 @@ Resources:
     - Metal texture: https://www.freepik.com/free-photo/metallic-textured-background_4139276.htm#query=metal%20texture&position=1&from_view=keyword
     - Sand texture: https://www.deviantart.com/hhh316/art/Seamless-desert-sand-texture-183159331
     - Floor tiles texture: https://www.freepik.com/free-photo/brown-wooden-flooring_4246371.htm#query=floor%20texture&position=5&from_view=keyword
+    - Wallpaper texture: https://www.pngegg.com/en/png-vclxa
 
 
 - Audio:
