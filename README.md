@@ -25,6 +25,8 @@ Resources:
     - Sand texture: https://www.deviantart.com/hhh316/art/Seamless-desert-sand-texture-183159331
     - Floor tiles texture: https://www.freepik.com/free-photo/brown-wooden-flooring_4246371.htm#query=floor%20texture&position=5&from_view=keyword
     - Wallpaper texture: https://www.pngegg.com/en/png-vclxa
+    - Bag of flour: https://www.blenderkit.com/get-blenderkit/741ad44a-2b64-4a8f-8e56-cd5175881bb2/
+    - Miracle Gro Garden Soil: https://www.lowes.com/pd/Miracle-Gro-Garden-Soil-All-Purpose-0-75-cu-ft-Garden-Soil/999929910
 
 
 - Audio:
