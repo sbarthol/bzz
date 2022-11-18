@@ -380,7 +380,7 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
     abort();
   }
 
-	schedule_notification(data_path("../scenes/text/intro.txt"), 1.5);
+	schedule_notification(data_path("../text/intro.txt"), 1.5);
 
 	// sampler
 	GLuint sampler{0};
@@ -500,7 +500,7 @@ void PlayMode::update(float elapsed) {
 			} else if (cricket.is_mature()) {
 				if(!first_time_matured) {
 					first_time_matured = true;
-					schedule_notification(data_path("../scenes/text/first_time_matured.txt"), 1);
+					schedule_notification(data_path("../text/first_time_matured.txt"), 1);
 				}
 				mature_cricket(cricket);
 			}
@@ -582,8 +582,8 @@ void PlayMode::update(float elapsed) {
 			if(cricket.is_dead()) {
 				if(!first_time_sick) {
 					first_time_sick = true;
-					schedule_notification(data_path("../scenes/text/first_time_sick.txt"), 1.5);
-					schedule_notification(data_path("../scenes/text/first_time_sick2.txt"), 1.6);
+					schedule_notification(data_path("../text/first_time_sick.txt"), 1.5);
+					schedule_notification(data_path("../text/first_time_sick2.txt"), 1.6);
 				}
 				kill_cricket(cricket);
 			}
@@ -622,7 +622,7 @@ void PlayMode::update(float elapsed) {
 				if(cricket.is_dead()) {
 					if(!first_time_starved) {
 						first_time_starved = true;
-						schedule_notification(data_path("../scenes/text/first_time_starved.txt"), 0);
+						schedule_notification(data_path("../text/first_time_starved.txt"), 0);
 					}
 					kill_cricket(cricket);
 				}
@@ -674,7 +674,7 @@ void PlayMode::update(float elapsed) {
 
 	if(numDeadCrickets == Crickets.size() && totalMoney < eggPrice && !gameOver) {
 		gameOver = true;
-		schedule_notification(data_path("../scenes/text/game_over.txt"), 1);
+		schedule_notification(data_path("../text/game_over.txt"), 1);
 	}
 
 	//reset button press counters:
@@ -924,7 +924,7 @@ bool PlayMode::buy_food() {
 	std::cout << "buy_food" << std::endl;
 	if(!first_time_food) {
 		first_time_food = true;
-		schedule_notification(data_path("../scenes/text/first_time_food.txt"), 1.5);
+		schedule_notification(data_path("../text/first_time_food.txt"), 1.5);
 	}
 	const float unitFood = foodPrice;
 	const float unitPrice = 10;
@@ -936,7 +936,7 @@ bool PlayMode::buy_eggs() {
 	std::cout << "buy_eggs" << std::endl;
 	if(!first_time_eggs) {
 		first_time_eggs = true;
-		schedule_notification(data_path("../scenes/text/first_time_eggs.txt"), 1.5);
+		schedule_notification(data_path("../text/first_time_eggs.txt"), 1.5);
 	}
 	const size_t unitEggs = 10;
 	const float unitPrice = eggPrice;
