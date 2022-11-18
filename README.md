@@ -23,6 +23,7 @@ Resources:
     - Terrarium: https://www.blenderkit.com/get-blenderkit/f31f86a2-714d-4caf-8d93-fb7f5b2b6a53/
     - Metal texture: https://www.freepik.com/free-photo/metallic-textured-background_4139276.htm#query=metal%20texture&position=1&from_view=keyword
     - Sand texture: https://www.deviantart.com/hhh316/art/Seamless-desert-sand-texture-183159331
+    - Floor tiles texture: https://www.freepik.com/free-photo/brown-wooden-flooring_4246371.htm#query=floor%20texture&position=5&from_view=keyword
 
 
 - Audio:
