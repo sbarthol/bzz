@@ -29,6 +29,7 @@ Resources:
     - Miracle Gro Garden Soil: https://www.lowes.com/pd/Miracle-Gro-Garden-Soil-All-Purpose-0-75-cu-ft-Garden-Soil/999929910
     - Table: https://www.blenderkit.com/get-blenderkit/bf2e6b17-ed2a-472c-8031-aa9836b9570d/
     - Table texture: https://www.pngwing.com/en/free-png-bhgfy
+    - Frame: https://www.kindpng.com/imgv/biibbb_gold-frame-png-file-painting-frame-png-transparent/
 
 
 - Audio:
