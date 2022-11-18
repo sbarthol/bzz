@@ -289,12 +289,12 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 
 	FRAGMENT_SHADER = ""
         "#version 330\n"
+				"uniform vec4 fillColor;\n"
         "uniform sampler2D tex;\n"
         "in vec2 texCoords;\n"
         "out vec4 fragColor;\n"
-				"const vec4 color = vec4(0.2, 0.2, 0.2, 1);\n"
         "void main(void) {\n"
-        "    fragColor = vec4(1, 1, 1, texture(tex, texCoords).r) * color;\n"
+        "    fragColor = vec4(1, 1, 1, texture(tex, texCoords).r) * fillColor;\n"
         "}\n";
 
 	vs = glCreateShader(GL_VERTEX_SHADER);
@@ -726,6 +726,11 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 	scene.draw(*camera);
 
+	// Draw stats
+	{
+		draw_stats(drawable_size, -1.f, -0.9f);
+	}
+
 	{ //use DrawLines to overlay some text:
 		glDisable(GL_DEPTH_TEST);
 		float aspect = float(drawable_size.x) / float(drawable_size.y);
@@ -1060,6 +1065,54 @@ std::string PlayMode::load_text_from_file(std::string filename) {
 	return text;
 }
 
+void PlayMode::draw_stats(glm::uvec2 const &drawable_size, float x, float y) {
+
+	GLuint vbo{0}, vao{0}, texture{0};
+
+	GL_ERRORS();
+	glUseProgram(text_program);
+	GL_ERRORS();
+
+	GLuint texUniform = glGetUniformLocation(text_program, "tex");
+	glUniform1i(texUniform, 0);
+
+	glGenBuffers(1, &vbo);
+  glGenVertexArrays(1, &vao);
+  glGenTextures(1, &texture);
+
+	// Set some GL state
+  glEnable(GL_BLEND);
+  glDisable(GL_CULL_FACE);
+  glDisable(GL_DEPTH_TEST);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glClearColor(0, 0, 0, 1);
+	GL_ERRORS();
+
+	GLuint fill_color_loc = glGetUniformLocation(text_program, "fillColor");
+	GL_ERRORS();
+	const GLfloat green[4] = {0.f, 1.f, 0.f, 1.0};
+	glUniform4fv(fill_color_loc, 1, green);
+	GL_ERRORS();
+
+	// Bind stuff
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glBindVertexArray(vao);
+  glEnableVertexAttribArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	GL_ERRORS();
+
+	std:: string sep = "      ";
+	std::string s = "Food: " + std::to_string((int)totalFood) + sep + "Money: " + std::to_string((int)totalMoney) + sep + "Babies: " + std::to_string(numBabyCrickets) + sep + "Adults: " + std::to_string(numMatureCrickets);
+	if(numDeadCrickets > 0) {
+		s += sep + "Dead: " + std::to_string(numDeadCrickets);
+	}
+	draw_text_line(s,drawable_size,x,y);
+
+	glDisable(GL_BLEND);
+	glUseProgram(0);
+}
+
 void PlayMode::draw_text_lines(glm::uvec2 const &drawable_size, float x, float y) {
 
 	GLuint vbo{0}, vao{0}, texture{0};
@@ -1085,8 +1138,8 @@ void PlayMode::draw_text_lines(glm::uvec2 const &drawable_size, float x, float y
 
 	GLuint fill_color_loc = glGetUniformLocation(text_program, "fillColor");
 	GL_ERRORS();
-	const GLfloat black[4] = {0.f, 0.f, 0.f, 1.0};
-	glUniform4fv(fill_color_loc, 1, black);
+	const GLfloat grey[4] = {0.2f, 0.2f, 0.2f, 1.0};
+	glUniform4fv(fill_color_loc, 1, grey);
 	GL_ERRORS();
 
 	// Bind stuff

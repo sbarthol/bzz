@@ -110,6 +110,7 @@ struct PlayMode : Mode {
 	hb_font_t *hb_font;
 	void draw_text_line(std::string s, glm::uvec2 const &drawable_size, float x, float y);
 	void draw_text_lines(glm::uvec2 const &drawable_size, float x, float y);
+	void draw_stats(glm::uvec2 const &drawable_size, float x, float y);
 	std::string load_text_from_file(std::string filename);
 	size_t total_letters{0};
 	size_t letter_counter{0};
