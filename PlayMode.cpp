@@ -38,14 +38,16 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		drawable.pipeline.start = mesh.start;
 		drawable.pipeline.count = mesh.count;
 
-		struct PlayMode::texture tex;
-		int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/strawberry.png"));
-  	if(ret) {
-  		printf("Cannot load texture, error code %d.\n", ret);
-    	abort();
-  	}
-		drawable.pipeline.textures[0].texture = tex.id;
-
+		if(mesh_name == "Terrarium") {
+			drawable.pipeline.blend = true;
+			struct PlayMode::texture tex;
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/strawberry.png"));
+  		if(ret) {
+  			printf("Cannot load texture, error code %d.\n", ret);
+    		abort();
+  		}
+			drawable.pipeline.textures[0].texture = tex.id;
+		} 
 	});
 });
 
@@ -297,32 +299,32 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 	GL_ERRORS();
 
 	// load some png textures
-	int ret = png_to_gl_texture(&button_clicked, data_path("../scenes/button_clicked.png"));
+	int ret = png_to_gl_texture(&button_clicked_tex, data_path("../scenes/button_clicked.png"));
   if(ret) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
   }
-	ret = png_to_gl_texture(&button_unclicked, data_path("../scenes/button_unclicked.png"));
+	ret = png_to_gl_texture(&button_unclicked_tex, data_path("../scenes/button_unclicked.png"));
   if(ret) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
   }
-	ret = png_to_gl_texture(&strawberry, data_path("../scenes/strawberry.png"));
+	ret = png_to_gl_texture(&strawberry_tex, data_path("../scenes/strawberry.png"));
   if(ret) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
   }
-	ret = png_to_gl_texture(&egg, data_path("../scenes/egg.png"));
+	ret = png_to_gl_texture(&egg_tex, data_path("../scenes/egg.png"));
   if(ret) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
   }
-	ret = png_to_gl_texture(&dollars, data_path("../scenes/dollars.png"));
+	ret = png_to_gl_texture(&dollars_tex, data_path("../scenes/dollars.png"));
   if(ret) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
   }
-	ret = png_to_gl_texture(&board, data_path("../scenes/board.png"));
+	ret = png_to_gl_texture(&board_tex, data_path("../scenes/board.png"));
   if(ret) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
@@ -338,7 +340,6 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
   glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glBindSampler(0, sampler);
-
 }
 
 PlayMode::~PlayMode() {
@@ -728,18 +729,18 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		
 	}
 
-	draw_textured_quad(&button_unclicked, -0.9, 0.5, drawable_size);
-	draw_textured_quad(&strawberry, -0.9, 0.5, drawable_size);
-	draw_textured_quad(&button_clicked, -0.9 + 0.2, 0.5, drawable_size);
-	draw_textured_quad(&strawberry, -0.9 + 0.2, 0.5, drawable_size);
-	draw_textured_quad(&button_unclicked, -0.9, 0.1, drawable_size);
-	draw_textured_quad(&egg, -0.9, 0.1, drawable_size);
-	draw_textured_quad(&button_unclicked, -0.9, -0.3, drawable_size);
-	draw_textured_quad(&dollars, -0.9, -0.3, drawable_size);
+	draw_textured_quad(&button_unclicked_tex, -0.9, 0.5, drawable_size);
+	draw_textured_quad(&strawberry_tex, -0.9, 0.5, drawable_size);
+	draw_textured_quad(&button_clicked_tex, -0.9 + 0.2, 0.5, drawable_size);
+	draw_textured_quad(&strawberry_tex, -0.9 + 0.2, 0.5, drawable_size);
+	draw_textured_quad(&button_unclicked_tex, -0.9, 0.1, drawable_size);
+	draw_textured_quad(&egg_tex, -0.9, 0.1, drawable_size);
+	draw_textured_quad(&button_unclicked_tex, -0.9, -0.3, drawable_size);
+	draw_textured_quad(&dollars_tex, -0.9, -0.3, drawable_size);
 
 	if (notification_active) {
 		draw_filled_rect(glm::vec2(-1.f,-1.f), glm::vec2(1.f, 1.f), glm::vec4(0.f, 0.f, 0.f, 0.4f));
-		draw_textured_quad(&board, -0.6f, -0.6f, drawable_size);
+		draw_textured_quad(&board_tex, -0.6f, -0.6f, drawable_size);
 		draw_text_lines(drawable_size,-0.58 , 0.36);
 		GL_ERRORS();
 		glDisable(GL_DEPTH_TEST);

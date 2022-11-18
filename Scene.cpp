@@ -101,6 +101,12 @@ void Scene::draw(glm::mat4 const &world_to_clip, glm::mat4x3 const &world_to_lig
 		//skip any drawables that don't contain any vertices:
 		if (pipeline.count == 0) continue;
 
+		if(pipeline.blend) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		} else {
+			glDisable(GL_BLEND);
+		}
 
 		//Set shader program:
 		glUseProgram(pipeline.program);
@@ -161,6 +167,7 @@ void Scene::draw(glm::mat4 const &world_to_clip, glm::mat4x3 const &world_to_lig
 
 	glUseProgram(0);
 	glBindVertexArray(0);
+	glDisable(GL_BLEND);
 
 	GL_ERRORS();
 }

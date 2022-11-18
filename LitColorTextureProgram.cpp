@@ -25,7 +25,14 @@ Load< LitColorTextureProgram > lit_color_texture_program(LoadTagEarly, []() -> L
 
 	//make a 1-pixel white texture to bind by default:
 	
-	
+	if(!lit_color_texture_program_pipeline.blend) {
+		GLuint tex;
+		glGenTextures(1, &tex);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		std::vector< glm::u8vec4 > tex_data(1, glm::u8vec4(0xff));
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data.data());
+		lit_color_texture_program_pipeline.textures[0].texture = tex;
+	}
 
 	glBindTexture(lit_color_texture_program_pipeline.textures[0].target, lit_color_texture_program_pipeline.textures[0].texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

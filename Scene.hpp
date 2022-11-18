@@ -57,6 +57,7 @@ struct Scene {
 		//Contains all the data needed to run the OpenGL pipeline:
 		struct Pipeline {
 			GLuint program = 0; //shader program; passed to glUseProgram
+			bool blend = false; // used for png textures
 
 			//attributes:
 			GLuint vao = 0; //attrib->buffer mapping; passed to glBindVertexArray
