@@ -38,20 +38,10 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		drawable.pipeline.start = mesh.start;
 		drawable.pipeline.count = mesh.count;
 
-		if(mesh_name == "Terrarium") {
-			drawable.pipeline.blend = true;
-			struct PlayMode::texture tex;
-			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/terrarium_tex.png"));
-  		if(ret) {
-  			printf("Cannot load texture, error code %d.\n", ret);
-    		abort();
-  		}
-			drawable.pipeline.textures[0].texture = tex.id;
-		} 
 		if(mesh_name == "Bedding") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/terrarium_tex.png"));
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/sand.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -158,7 +148,7 @@ Scene::Transform* PlayMode::spawn_strawberry() {
 
 	Scene::Transform *transform = &scene.transforms.back();
 
-	const float eps = 0.2f;
+	const float eps = 0.3f;
 	transform->position = glm::vec3(get_rng_range(bedding_min.x + eps, bedding_max.x - eps), get_rng_range(bedding_min.y + eps, bedding_max.y - eps), strawberry_transform->position.z);
 	transform->rotation = glm::angleAxis(glm::radians(get_rng_range(0.f,360.f)), glm::vec3(0.0,0.0,1.0));
 	transform->scale = glm::vec3(1.f);
