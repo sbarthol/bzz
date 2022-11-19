@@ -429,6 +429,11 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
   }
+	ret = png_to_gl_texture(&lens_view_tex, data_path("../scenes/lens_view.png"));
+  if(ret) {
+  	printf("Cannot load texture, error code %d.\n", ret);
+    abort();
+  }
 
 	schedule_notification(data_path("../text/intro.txt"), 1.5);
 
@@ -855,6 +860,8 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		glDisable(GL_DEPTH_TEST);
 		GL_ERRORS();
 
+	} else if (alt_view) {
+		draw_textured_quad(&lens_view_tex, -0.45f, -0.7f, drawable_size);
 	}
 }
 
