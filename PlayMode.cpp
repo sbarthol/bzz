@@ -118,6 +118,16 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
   		}
 			drawable.pipeline.textures[0].texture = tex.id;
 		} 
+		if(mesh_name == "Lens") {
+			drawable.pipeline.blend = true;
+			struct PlayMode::texture tex;
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/lens.png"));
+  		if(ret) {
+  			printf("Cannot load texture, error code %d.\n", ret);
+    		abort();
+  		}
+			drawable.pipeline.textures[0].texture = tex.id;
+		} 
 	});
 });
 
@@ -220,7 +230,6 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 
 	
 	for (auto &transform : scene.transforms) {
-		printf("%s\n", transform.name.c_str());
 
 		if (transform.name == "AdultCricket") {
 			adult_cricket_transform = &transform;

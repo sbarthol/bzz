@@ -35,6 +35,7 @@ Resources:
     - Soil texture: https://www.freepik.com/free-photo/top-view-soil_4606525.htm#query=soil%20texture&position=2&from_view=search&track=sph
     - Camera: https://www.blenderkit.com/get-blenderkit/020ebba2-cc67-469a-bdf7-a399651277f3/
     - Tripod: https://www.blenderkit.com/get-blenderkit/0516967a-8de0-42ee-a6c4-86caf08174eb/
+    - Camera lens texture: http://photoguild.org/camera-lens/
 
 
 - Audio:
