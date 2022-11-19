@@ -686,6 +686,9 @@ void PlayMode::update(float elapsed) {
 		dir = motion * glm::normalize(dir);
 		camera->transform->position += dir;
 
+		camera->transform->position.x = glm::clamp(camera->transform->position.x, -10.f, 10.f);
+		camera->transform->position.y = glm::clamp(camera->transform->position.y, -10.f, 10.f);
+
 		motion = 0.f;
 		if (left.pressed && !right.pressed)motion = 0.03f;
 		else if (!left.pressed && right.pressed)motion = -0.03f;
