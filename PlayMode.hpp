@@ -47,7 +47,7 @@ struct PlayMode : Mode {
 	struct Button {
 		uint8_t downs = 0;
 		uint8_t pressed = 0;
-	} left, right, down, up, space;
+	} left, right, down, up, space, switch_camera;
 
 
 	struct Cricket {
@@ -131,6 +131,7 @@ struct PlayMode : Mode {
 	bool first_time_starved = false;
 	bool first_time_sick = false;
 	bool first_time_950_dollars = false;
+	bool first_time_alt_view = false;
 
 	Scene::Transform *first_cricket; 
 	std::vector<Cricket> Crickets;
@@ -175,6 +176,8 @@ struct PlayMode : Mode {
 	// Button Functions
 	UI game_UI;
 
-	//camera:
-	Scene::Camera *camera = nullptr;
+	//cameras:
+	Scene::Camera *main_camera = nullptr;
+	Scene::Camera *alt_camera = nullptr;
+	bool alt_view = false;
 };

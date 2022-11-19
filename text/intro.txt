@@ -1,3 +1,3 @@
 Welcome to the cricket breeding game! In this game, your job is to breed crickets and sell them once they reach maturity. This prompt will guide you through all the steps. Since you currently have money, go ahead and buy some eggs.
 
-Pressing space will skip the text animation and close this window. You can use WASD to move the camera.
+Pressing space will skip the text animation and close this window. You can use WASD to move the camera. Use C to switch the camera.

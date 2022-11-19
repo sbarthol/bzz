@@ -237,8 +237,13 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 	}
 
 	//get pointer to camera for convenience:
-	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
-	camera = &scene.cameras.front();
+	if (scene.cameras.size() != 2) throw std::runtime_error("Expecting scene to have exactly two cameras, but it has " + std::to_string(scene.cameras.size()));
+	main_camera = &scene.cameras.front();
+	alt_camera = &scene.cameras.back();
+
+	if(alt_camera->transform->position.z < main_camera->transform->position.z) {
+		std::swap(main_camera, alt_camera);
+	}
 
 	// Loop chirping sound and background music
 	// chirping_loop = Sound::loop(*chirping_sample, 1.0f, 0.0f);
@@ -446,6 +451,9 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			down.downs += 1;
 			down.pressed = true;
 			return true;
+		} else if (evt.key.keysym.sym == SDLK_c) {
+			switch_camera.pressed = true;
+			return true;
 		} else if (evt.key.keysym.sym == SDLK_SPACE) {
 			space.pressed = true;
 			return true;
@@ -462,6 +470,10 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_s) {
 			down.pressed = false;
+			return true;
+		} else if (evt.key.keysym.sym == SDLK_c) {
+			switch_camera.downs += 1;
+			switch_camera.pressed = false;
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_SPACE) {
 			space.downs += 1;
@@ -673,8 +685,17 @@ void PlayMode::update(float elapsed) {
 		totalFood = std::max(0.f, totalFood - (numBabyCrickets + numMatureCrickets) * cricketEatingRate);
 	}
 
+	// switch camera
+	if(switch_camera.downs) {
+		alt_view = !alt_view;
+		if(!first_time_alt_view) {
+			first_time_alt_view = true;
+			schedule_notification(data_path("../text/first_time_alt_view.txt"), 0);
+		}
+	}
+
 	//move camera:
-	{
+	if(!alt_view){
 
 		//combine inputs into a move:
 		float motion = 0.f;
@@ -682,25 +703,34 @@ void PlayMode::update(float elapsed) {
 		if (down.pressed && !up.pressed) motion = 0.3f;
 		if (!down.pressed && up.pressed) motion = -0.3f;
 
-		glm::vec3 dir = camera->transform->rotation * glm::vec3(0.f, 0.f, 1.f) ;
+		glm::vec3 dir = main_camera->transform->rotation * glm::vec3(0.f, 0.f, 1.f) ;
 		dir = motion * glm::normalize(dir);
-		camera->transform->position += dir;
+		main_camera->transform->position += dir;
 
-		camera->transform->position.x = glm::clamp(camera->transform->position.x, -10.f, 10.f);
-		camera->transform->position.y = glm::clamp(camera->transform->position.y, -10.f, 10.f);
+		main_camera->transform->position.x = glm::clamp(main_camera->transform->position.x, -10.f, 10.f);
+		main_camera->transform->position.y = glm::clamp(main_camera->transform->position.y, -10.f, 10.f);
 
 		motion = 0.f;
 		if (left.pressed && !right.pressed)motion = 0.03f;
 		else if (!left.pressed && right.pressed)motion = -0.03f;
 
-		camera->transform->rotation = glm::normalize(
-			camera->transform->rotation
-				* glm::angleAxis(motion * camera->fovy, glm::vec3(0.0f, 1.0f, 0.0f))
+		main_camera->transform->rotation = glm::normalize(
+			main_camera->transform->rotation
+				* glm::angleAxis(motion * main_camera->fovy, glm::vec3(0.0f, 1.0f, 0.0f))
 		);
+	} else {
+		float motion = 0.f;
+
+		if (down.pressed && !up.pressed) motion = 0.01f;
+		if (!down.pressed && up.pressed) motion = -0.01f;
+
+		alt_camera->fovy += motion;
+		alt_camera->fovy = std::clamp(alt_camera->fovy, 0.01f, 1.6f);
+		// Todo: move left and right
 	}
 
 	{ //update listener to camera position:
-		glm::mat4x3 frame = camera->transform->make_local_to_parent();
+		glm::mat4x3 frame = main_camera->transform->make_local_to_parent();
 		glm::vec3 frame_right = frame[0];
 		glm::vec3 frame_at = frame[3];
 		Sound::listener.set_position_right(frame_at, frame_right, 1.0f / 60.0f);
@@ -733,11 +763,13 @@ void PlayMode::update(float elapsed) {
 	up.downs = 0;
 	down.downs = 0;
 	space.downs = 0;
+	switch_camera.downs = 0;
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	//update camera aspect ratio for drawable:
-	camera->aspect = float(drawable_size.x) / float(drawable_size.y);
+	main_camera->aspect = float(drawable_size.x) / float(drawable_size.y);
+	alt_camera->aspect = float(drawable_size.x) / float(drawable_size.y);
 
 	//set up light type and position for lit_color_texture_program:
 	// TODO: consider using the Light(s) in the scene to do this
@@ -754,7 +786,11 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS); //this is the default depth comparison function, but FYI you can change it.
 
-	scene.draw(*camera);
+	if(alt_view) {
+		scene.draw(*alt_camera);
+	} else {
+		scene.draw(*main_camera);
+	}
 
 	// Draw stats
 	{
