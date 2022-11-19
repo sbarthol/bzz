@@ -16,3 +16,6 @@ scenes/show-scene*
 maek-cache.json
 .vscode/
 .DS_Store
+*.pnct
+*.scene
+*.psd

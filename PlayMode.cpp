@@ -218,7 +218,10 @@ void PlayMode::kill_cricket(Cricket &cricket) {
 
 PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 
+	
 	for (auto &transform : scene.transforms) {
+		printf("%s\n", transform.name.c_str());
+
 		if (transform.name == "AdultCricket") {
 			adult_cricket_transform = &transform;
 			adult_cricket_transform->scale = glm::vec3(0.f);
@@ -233,6 +236,9 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 		}
 		if (transform.name == "Bedding") {
 			bedding_transform = &transform;
+		}
+		if (transform.name == "CameraBody") {
+			camera_body_transform = &transform;
 		}
 	}
 
@@ -692,6 +698,7 @@ void PlayMode::update(float elapsed) {
 			first_time_alt_view = true;
 			schedule_notification(data_path("../text/first_time_alt_view.txt"), 0);
 		}
+		camera_body_transform->scale = glm::vec3(alt_view ? 0.f : 1.f);
 	}
 
 	//move camera:

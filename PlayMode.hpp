@@ -91,6 +91,7 @@ struct PlayMode : Mode {
 	Scene::Transform *baby_cricket_transform;
 	Scene::Transform *strawberry_transform;
 	Scene::Transform *bedding_transform;
+	Scene::Transform *camera_body_transform;
 	float elapsed_since_spawn = 0.0;
 	std::list<Scene::Transform*> strawberry_transforms;
 	Scene::Transform* spawn_strawberry();
