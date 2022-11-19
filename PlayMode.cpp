@@ -677,18 +677,23 @@ void PlayMode::update(float elapsed) {
 	{
 
 		//combine inputs into a move:
-		constexpr float PlayerSpeed = 10.0f;
-		glm::vec2 move = glm::vec2(0.0f);
-		if (left.pressed && !right.pressed) move.x =-1.0f;
-		if (!left.pressed && right.pressed) move.x = 1.0f;
-		if (down.pressed && !up.pressed) move.y =-1.0f;
-		if (!down.pressed && up.pressed) move.y = 1.0f;
+		float motion = 0.f;
 
-		//make it so that moving diagonally doesn't go faster:
-		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;
+		if (down.pressed && !up.pressed) motion = 0.3f;
+		if (!down.pressed && up.pressed) motion = -0.3f;
 
-		camera->transform->position.x += move.x;
-		camera->transform->position.y += move.y;
+		glm::vec3 dir = camera->transform->rotation * glm::vec3(0.f, 0.f, 1.f) ;
+		dir = motion * glm::normalize(dir);
+		camera->transform->position += dir;
+
+		motion = 0.f;
+		if (left.pressed && !right.pressed)motion = 0.03f;
+		else if (!left.pressed && right.pressed)motion = -0.03f;
+
+		camera->transform->rotation = glm::normalize(
+			camera->transform->rotation
+				* glm::angleAxis(motion * camera->fovy, glm::vec3(0.0f, 1.0f, 0.0f))
+		);
 	}
 
 	{ //update listener to camera position:
@@ -754,6 +759,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	}
 
 	{ //use DrawLines to overlay some text:
+
 		glDisable(GL_DEPTH_TEST);
 		float aspect = float(drawable_size.x) / float(drawable_size.y);
 		DrawLines lines(glm::mat4(
@@ -762,54 +768,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			0.0f, 0.0f, 1.0f, 0.0f,
 			0.0f, 0.0f, 0.0f, 1.0f
 		));
-
-		constexpr float H = 0.09f;
 		game_UI.draw();
-		if (totalFood <= 0){
-			lines.draw_text("Food: " + std::to_string((int)totalFood),
-				glm::vec3(aspect - 0.8f, 1.0f - 0.30f, 0.0),
-				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-				glm::u8vec4(0xEE, 0x22, 0x22, 0x00));
-			lines.draw_text("Crickets are starving.",
-				glm::vec3(aspect - 0.8f, 1.0f - 0.35f, 0.0),
-				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H/2, 0.0f),
-				glm::u8vec4(0xff, 0x11, 0x11, 0x00));
-		}else
-		{
-			lines.draw_text("Food: " + std::to_string((int)totalFood),
-				glm::vec3(aspect - 0.8f, 1.0f - 0.30f, 0.0),
-				glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-				glm::u8vec4(0x00, 0x00, 0x00, 0x00));
-		}
-		lines.draw_text("Money: " + std::to_string((int)totalMoney),
-			glm::vec3(aspect - 0.8f, 1.0f - 0.45f, 0.0),
-			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
-
-		lines.draw_text("Baby Crickets: " + std::to_string(numBabyCrickets),
-			glm::vec3(aspect - 0.8f, 1.0f - 0.60f, 0.0),
-			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
-
-		lines.draw_text("Mature Crickets: " + std::to_string(numMatureCrickets),
-			glm::vec3(aspect - 0.8f, 1.0f - 0.75f, 0.0),
-			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
-		lines.draw_text("WASD moves the camera",
-			glm::vec3(-aspect + 0.1f * H, -1.0 + 0.1f * H, 0.0),
-			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-			glm::u8vec4(0x00, 0x00, 0x00, 0x00));
-		float ofs = 2.0f / drawable_size.y;
-		lines.draw_text("WASD moves the camera",
-			glm::vec3(-aspect + 0.1f * H + ofs, -1.0 + + 0.1f * H + ofs, 0.0),
-			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
-		if (numDeadCrickets > 0){
-			lines.draw_text("Dead crickets are spreading disease.",
-			glm::vec3(aspect -2.f, -1.0 + 0.1f * H + ofs, 0.0),
-			glm::vec3(H, 0.0f, 0.0f), glm::vec3(0.0f, H, 0.0f),
-			glm::u8vec4(0xff, 0xff, 0xff, 0xff));
-		}
 
 		auto popup = popups.begin();
 		while(popup != popups.end()) {
@@ -822,8 +781,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 				popup = popups.erase(popup);
 			}
 		}
-
-		
 	}
 
 	draw_textured_quad(&button_unclicked_tex, -0.9, 0.5, drawable_size);
@@ -1129,7 +1086,7 @@ void PlayMode::draw_stats(glm::uvec2 const &drawable_size, float x, float y) {
 	GL_ERRORS();
 
 	std:: string sep = "      ";
-	std::string s = "Food: " + std::to_string((int)totalFood) + sep + "Money: " + std::to_string((int)totalMoney) + sep + "Babies: " + std::to_string(numBabyCrickets) + sep + "Adults: " + std::to_string(numMatureCrickets);
+	std::string s = "Food: " + std::to_string((int)totalFood) + sep + "Money: " + std::to_string((int)totalMoney) + sep + "Eggs:" + std::to_string(numEggs) + sep + "Babies: " + std::to_string(numBabyCrickets) + sep + "Adults: " + std::to_string(numMatureCrickets);
 	if(numDeadCrickets > 0) {
 		s += sep + "Dead: " + std::to_string(numDeadCrickets);
 	}
