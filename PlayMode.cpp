@@ -185,13 +185,16 @@ void PlayMode::spawn_cricket() {
 
 	Scene::Transform *transform = &scene.transforms.back();
 	Cricket cricket = Cricket(Cricket::seq++, transform);
-	// TODO remove!!
-	// cricket.age = cricket.matureAge;
+
+	cricket.hatchAge = get_rng_range(3.f, 7.f);
+	cricket.matureAge = get_rng_range(17.f, 23.f);
+	cricket.lifeSpan = get_rng_range(80.f, 110.f);
+	
 	Crickets.push_back(cricket);
 
 	transform->position = glm::vec3(get_rng_range(bedding_min.x,bedding_max.x), get_rng_range(bedding_min.y,bedding_max.y), baby_cricket_transform->position.z);
 	transform->rotation = glm::angleAxis(glm::radians(get_rng_range(0.f,360.f)), glm::vec3(0.0,0.0,1.0));
-	transform->scale = glm::vec3(1.f);
+	transform->scale = glm::vec3(0.f);
 	transform->name = "Cricket_" + std::to_string(cricket.cricketID);
 
 	scene.drawables.emplace_back(Scene::Drawable(transform));
@@ -530,6 +533,14 @@ void PlayMode::update(float elapsed) {
 					schedule_notification(data_path("../text/first_time_matured.txt"), 1);
 				}
 				mature_cricket(cricket);
+			} else if (cricket.is_baby()) {
+				if(!first_time_babies) {
+					first_time_babies = true;
+					schedule_notification(data_path("../text/first_time_babies.txt"), 1.000);
+					schedule_notification(data_path("../text/first_time_babies2.txt"), 1.001);
+					schedule_notification(data_path("../text/first_time_babies3.txt"), 1.002);
+				}
+				hatch_cricket(cricket);
 			}
 		}
 	}
@@ -538,7 +549,7 @@ void PlayMode::update(float elapsed) {
 	{
 		const float JumpDistance = 0.1f;
 		for(Cricket &cricket: Crickets) {
-			if(cricket.is_dead()) {
+			if(cricket.is_dead() || cricket.is_egg()) {
 				continue;
 			}
 			if(std::rand() % 40 == 0) {
@@ -580,6 +591,7 @@ void PlayMode::update(float elapsed) {
 		numBabyCrickets = 0;
 		numMatureCrickets = 0;
 		numDeadCrickets = 0;
+		numEggs = 0;
 		for(Cricket &cricket: Crickets) {
 			if (cricket.is_mature()){
 				numMatureCrickets ++;
@@ -590,8 +602,11 @@ void PlayMode::update(float elapsed) {
 			if(cricket.is_baby()) {
 				numBabyCrickets++;
 			}
+			if (cricket.is_egg()) {
+				numEggs++;
+			}
 		}
-		assert(numBabyCrickets + numMatureCrickets + numDeadCrickets == Crickets.size());
+		assert(numBabyCrickets + numMatureCrickets + numDeadCrickets + numEggs == Crickets.size());
 	}
 
 	//update disease rate if we have too many dead crickets in the environment
@@ -602,7 +617,7 @@ void PlayMode::update(float elapsed) {
 		};
 
 		for( Cricket &cricket: Crickets) {
-			if(cricket.is_dead()) {
+			if(cricket.is_dead() || cricket.is_egg()) {
 				continue;
 			}
 			cricket.is_healthy = !is_sick();
@@ -610,7 +625,7 @@ void PlayMode::update(float elapsed) {
 				if(!first_time_sick) {
 					first_time_sick = true;
 					schedule_notification(data_path("../text/first_time_sick.txt"), 1.5);
-					schedule_notification(data_path("../text/first_time_sick2.txt"), 1.6);
+					schedule_notification(data_path("../text/first_time_sick2.txt"), 1.5001);
 				}
 				kill_cricket(cricket);
 			}
@@ -642,7 +657,7 @@ void PlayMode::update(float elapsed) {
 				return rand() % 1000 + 1 < 6;
 			};
 			for( Cricket &cricket: Crickets) {
-				if(cricket.is_dead()) {
+				if(cricket.is_dead() || cricket.is_egg()) {
 					continue;
 				}
 				cricket.is_healthy = !is_starving();
@@ -848,7 +863,7 @@ void PlayMode::display_notification(std::string filename) {
 			continue;
 		}
 		len++;
-		if((len >= 45 && c == ' ') || c=='\n') {
+		if((len >= 40 && c == ' ') || c=='\n') {
 			notification_text.push_back(text.substr(start,len));
 			start += len;
 			total_letters += len;
@@ -996,6 +1011,10 @@ void PlayMode::mature_cricket(Cricket &cricket) {
 	}
 }
 
+void PlayMode::hatch_cricket(Cricket &cricket) {
+	cricket.transform->scale = glm::vec3(1.f);
+}
+
 bool PlayMode::sell_mature() {
 	std::cout << "sell_mature" << std::endl;
 	const float price = 30;
@@ -1006,7 +1025,7 @@ bool PlayMode::sell_mature() {
 	bool success = false;
 
 	for(Cricket &cricket: Crickets) {
-		if(cricket.is_mature() && !cricket.is_dead()) {
+		if(cricket.is_mature()) {
 			mature_crickets.push_back(cricket);
 			mature_cricket_names.insert("Cricket_" + std::to_string(cricket.cricketID));
 		}else{

@@ -36,9 +36,12 @@ Resources:
 
 
 - Audio:
-    - Chirping - https://freesound.org/people/GB01/sounds/530477/
-    - Sell cricket - https://freesound.org/people/kiddpark/sounds/201159/
-    - Button click - https://freesound.org/people/EminYILDIRIM/sounds/536108/
-    - Background music - https://freesound.org/people/Migfus20/sounds/559840/
+    - Chirping: https://freesound.org/people/GB01/sounds/530477/
+    - Sell cricket: https://freesound.org/people/kiddpark/sounds/201159/
+    - Button click: https://freesound.org/people/EminYILDIRIM/sounds/536108/
+    - Background music: https://freesound.org/people/Migfus20/sounds/559840/
+
+- Cricket facts:
+    - Life cycle: https://cricketcare.org/life-cycle/
 
 This game was built with [NEST](NEST.md).

@@ -54,13 +54,18 @@ struct PlayMode : Mode {
 
 		int cricketID;
 		Scene::Transform *transform;
-		float lifeSpan = 100.f; // is there a constant lifespan
-		float matureAge = 20.f; //age that cricket is mature
+		float lifeSpan;
+		float matureAge;
+		float hatchAge;
 		bool is_healthy = true;
-		// or is the time of death determined by environment?
+
 		float age = 0.f;
 
 		static int seq;
+
+		bool is_egg() {
+			return !is_dead() && age < hatchAge;
+		}
 
 		bool is_mature() {
 			return !is_dead() && age >= matureAge;
@@ -71,7 +76,7 @@ struct PlayMode : Mode {
 		}
 
 		bool is_baby() {
-			return !is_dead() && age < matureAge;
+			return !is_dead() && hatchAge <= age && age < matureAge;
 		}
 
 		Cricket(int cricketID_, Scene::Transform *transform_ ): cricketID(cricketID_), transform(transform_)  {}
@@ -81,6 +86,7 @@ struct PlayMode : Mode {
 	void spawn_cricket();
 	void kill_cricket(Cricket &cricket);
 	void mature_cricket(Cricket &cricket);
+	void hatch_cricket(Cricket &cricket);
 	Scene::Transform *adult_cricket_transform;
 	Scene::Transform *baby_cricket_transform;
 	Scene::Transform *strawberry_transform;
@@ -119,7 +125,8 @@ struct PlayMode : Mode {
 
 	// Tutorial
 	bool first_time_food = false; 
-	bool first_time_eggs = false; 
+	bool first_time_babies = false; 
+	bool first_time_eggs = false;
 	bool first_time_matured = false; 
 	bool first_time_starved = false;
 	bool first_time_sick = false;
@@ -128,6 +135,7 @@ struct PlayMode : Mode {
 	std::vector<Cricket> Crickets;
 	float total_elapsed = 0.f;
 	float cricketEatingRate = 0.01f;
+	size_t numEggs = 0;
 	size_t numBabyCrickets = 0;
 	size_t numMatureCrickets = 0;
 	size_t numDeadCrickets = 0;
