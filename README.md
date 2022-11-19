@@ -31,6 +31,8 @@ Resources:
     - Table texture: https://www.pngwing.com/en/free-png-bhgfy
     - Frame: https://www.kindpng.com/imgv/biibbb_gold-frame-png-file-painting-frame-png-transparent/
     - Fruit bag texture: https://www.festfoods.com/shop/frozen/frozen_fruits/berries/dole_sliced_frozen_strawberries_14_oz_pouch/p/38655
+    - Food container: https://sketchfab.com/3d-models/cc0-food-container-4-03749821e3a9441e9868fea0a7d991cc#download
+    - Soil texture: https://www.freepik.com/free-photo/top-view-soil_4606525.htm#query=soil%20texture&position=2&from_view=search&track=sph
 
 
 - Audio:

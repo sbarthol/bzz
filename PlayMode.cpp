@@ -68,10 +68,10 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
   		}
 			drawable.pipeline.textures[0].texture = tex.id;
 		} 
-		if(mesh_name == "Soil") {
+		if(mesh_name == "SoilBag") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/soil.png"));
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/soilbag.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -102,6 +102,16 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
 			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/fruit.png"));
+  		if(ret) {
+  			printf("Cannot load texture, error code %d.\n", ret);
+    		abort();
+  		}
+			drawable.pipeline.textures[0].texture = tex.id;
+		} 
+		if(mesh_name == "Soil") {
+			drawable.pipeline.blend = true;
+			struct PlayMode::texture tex;
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/soil.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
