@@ -247,6 +247,13 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 	bedding_min = to_world * glm::vec4(mesh.min, 1.f);
 	bedding_max = to_world * glm::vec4(mesh.max, 1.f);
 
+	if(bedding_min.x > bedding_max.x) {
+		std::swap(bedding_min.x, bedding_max.x);
+	}
+	if(bedding_min.y > bedding_max.y) {
+		std::swap(bedding_min.y, bedding_max.y);
+	}
+
 	const char *VERTEX_SHADER = ""
         "#version 330\n"
         "in vec2 position;\n"
