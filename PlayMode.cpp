@@ -945,7 +945,7 @@ bool PlayMode::buy_eggs() {
 		first_time_eggs = true;
 		schedule_notification(data_path("../text/first_time_eggs.txt"), 1.5);
 	}
-	const size_t unitEggs = 10;
+	const size_t unitEggs = 19;
 	const float unitPrice = eggPrice;
 	bool success = false;
 
@@ -977,7 +977,7 @@ void PlayMode::hatch_cricket(Cricket &cricket) {
 
 bool PlayMode::sell_mature() {
 	std::cout << "sell_mature" << std::endl;
-	const float price = 30;
+	const float price = 50;
 
 	std::unordered_set<std::string> mature_cricket_names;
 	std::vector<Cricket> mature_crickets;
@@ -1001,6 +1001,12 @@ bool PlayMode::sell_mature() {
 	
 	float profit = numMatureCrickets * price;
 	totalMoney += profit;
+
+	if(totalMoney >= 950 && !first_time_950_dollars) {
+		first_time_950_dollars = true;
+		schedule_notification(data_path("../text/first_time_950_dollars.txt"), 1.5);
+	}	
+
 	numMatureCrickets = 0;
 	Crickets = std::move(non_mature_crickets);
 

@@ -130,6 +130,7 @@ struct PlayMode : Mode {
 	bool first_time_matured = false; 
 	bool first_time_starved = false;
 	bool first_time_sick = false;
+	bool first_time_950_dollars = false;
 
 	Scene::Transform *first_cricket; 
 	std::vector<Cricket> Crickets;
@@ -139,7 +140,7 @@ struct PlayMode : Mode {
 	size_t numBabyCrickets = 0;
 	size_t numMatureCrickets = 0;
 	size_t numDeadCrickets = 0;
-	float totalMoney = 1000.f;
+	float totalMoney = 220.f;
 	float totalFood = 200.f;
 	size_t eggPrice = 200;
 	size_t foodPrice = 200;
