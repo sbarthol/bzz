@@ -1169,6 +1169,48 @@ void Popup_UI::draw(DrawLines &lines) {
 	anchor.x += 0.5;
 }
 
+void Button_UI::Button_UI(glm::vec2 _anchor, std::string icon_png, call_back _trigger_event)	:
+    anchor(_anchor), trigger_event(_trigger_event) {
+	
+	int ret;
+	ret = png_to_gl_texture(&clickedTex, data_path("../scenes/button_clicked.png"));
+	assert(ret == 0);
+	ret = png_to_gl_texture(&unclickedTex, data_path("../scenes/button_unclicked.png"));
+	assert(ret == 0);
+	ret = png_to_gl_texture(&icon, data_path(icon_png));
+	assert(ret == 0);
+
+	active = false;
+	clicked = false;
+}
+
+void Button_UI::draw() {
+	auto cur_time = std::chrono::high_resolution_clock::now();
+	if (clicked && cur_time > reset_time) {
+		clicked = false;
+	}
+
+	if (clicked) draw_textured_quad(&unclickedTex, anchor.x, anchor.y, drawable_size);
+	else draw_textured_quad(&clickedTex, anchor.x, anchor.y, drawable_size);
+
+	draw_textured_quad(&icon, anchor.x, anchor.y, drawable_size);
+}
+
+void Button_UI::interact(int mouse_x, int mouse_y, glm::vec2 drawable_size) {
+	int x0 = anchor.x * drawable_size.x;
+	int y0 = anchor.x * drawable_size.x
+
+	int x1 = x0 + (float)tex->w;
+	int y1 = y0 + (float)tex->h;
+
+	if (mouse_x >= x0 && mouse_x <= x1 &&
+		mouse_y >= y0 && mouse_y <= y1) {
+		
+		clicked = true;
+		reset_time = std::chrono::high_resolution_clock::now() + std::chrono::microseconds(500);
+	}
+}
+
 std::string PlayMode::load_text_from_file(std::string filename) {
 	std::string text = "";
   std::ifstream input(filename);

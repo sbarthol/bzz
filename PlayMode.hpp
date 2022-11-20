@@ -32,6 +32,30 @@ struct Popup_UI {
 	void draw(DrawLines &lines);
 };
 
+struct Button_UI {
+	glm::vec2 anchor;
+    PlayMode::texture clickedTex;
+	PlayMode::texture unclickedTex;
+	PlayMode::texture icon;
+
+	// button state
+	bool active;
+	bool clicked;
+	std::chrono::time_point<std::chrono::high_resolution_clock> reset_time;
+
+	enum call_back {
+		BUY_FOOD = 0,
+		SELL_MATURE = 1,
+		BUY_EGG = 2
+	};
+	call_back trigger_event;
+
+	Button_UI(glm::vec2 _anchor, std::string icon_png, call_back _trigger_event);
+
+	void draw();
+	void interact(int mouse_x, int mouse_y, glm::vec2 drawable_size);
+};
+
 struct PlayMode : Mode {
 	PlayMode(glm::uvec2 window_size_);
 	virtual ~PlayMode();
@@ -173,12 +197,10 @@ struct PlayMode : Mode {
 	bool remove_dead_crickets();
 
 	std::vector<Popup_UI> popups;
+	std::vector<Button_UI> buttons;
 
 	//local copy of the game scene (so code can change it during gameplay):
 	Scene scene;
-	
-	// Button Functions
-	UI game_UI;
 
 	//cameras:
 	Scene::Camera *main_camera = nullptr;
