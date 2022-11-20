@@ -18,6 +18,10 @@
 #include <errno.h>
 #include <stdio.h>
 
+static int png_to_gl_texture(PlayMode::texture * tex, std::string filename);
+static void draw_textured_quad(PlayMode::texture * tex, float x0, float y0, glm::uvec2 const &drawable_size);
+static GLuint png_program;
+
 int PlayMode::Cricket::seq = 0;
 
 GLuint bzz_meshes_for_lit_color_texture_program = 0;
@@ -44,7 +48,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Bedding") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/sand.png"));
+			int ret = png_to_gl_texture(&tex, data_path("../scenes/sand.png"));
   		if(ret) {
 			printf("%s\n", data_path("../scenes/sand.png").c_str());
   			printf("Cannot load texture, error code %d.\n", ret);
@@ -55,8 +59,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Floor") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/floor.png"));
-			
+			int ret = png_to_gl_texture(&tex, data_path("../scenes/floor.png"));
   		if(ret) {
 			printf("%s\n", data_path("../scenes/floor.png").c_str());
   			printf("Cannot load texture, error code %d.\n", ret);
@@ -67,7 +70,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Walls") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/wallpaper.png"));
+			int ret = png_to_gl_texture(&tex, data_path("../scenes/wallpaper.png"));
   		if(ret) {
 			printf("%s\n", data_path("../scenes/wallpaper.png").c_str());
   			printf("Cannot load texture, error code %d.\n", ret);
@@ -78,7 +81,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "SoilBag") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/soilbag.png"));
+			int ret = png_to_gl_texture(&tex, data_path("../scenes/soilbag.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -88,7 +91,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Table") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/table.png"));
+			int ret = png_to_gl_texture(&tex, data_path("../scenes/table.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -98,7 +101,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Frame") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/frame.png"));
+			int ret = png_to_gl_texture(&tex, data_path("../scenes/frame.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -108,7 +111,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Fruit") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/fruit.png"));
+			int ret = png_to_gl_texture(&tex, data_path("../scenes/fruit.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -118,7 +121,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Soil") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/soil.png"));
+			int ret = png_to_gl_texture(&tex, data_path("../scenes/soil.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -128,7 +131,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Lens") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/lens.png"));
+			int ret = png_to_gl_texture(&tex, data_path("../scenes/lens.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -449,16 +452,17 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 //   	printf("Cannot load texture, error code %d.\n", ret);
 //     abort();
 //   }
-// 	ret = png_to_gl_texture(&board_tex, data_path("../scenes/board.png"));
-//   if(ret) {
-//   	printf("Cannot load texture, error code %d.\n", ret);
-//     abort();
-//   }
-// 	ret = png_to_gl_texture(&lens_view_tex, data_path("../scenes/lens_view.png"));
-//   if(ret) {
-//   	printf("Cannot load texture, error code %d.\n", ret);
-//     abort();
-//   }
+	int ret;
+	ret = png_to_gl_texture(&board_tex, data_path("../scenes/board.png"));
+  if(ret) {
+  	printf("Cannot load texture, error code %d.\n", ret);
+    abort();
+  }
+	ret = png_to_gl_texture(&lens_view_tex, data_path("../scenes/lens_view.png"));
+  if(ret) {
+  	printf("Cannot load texture, error code %d.\n", ret);
+    abort();
+  }
 
 	schedule_notification(data_path("../text/intro.txt"), 1.5);
 
@@ -891,6 +895,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 	} else if (alt_view) {
 		draw_textured_quad(&lens_view_tex, -0.45f, -0.7f, drawable_size);
+		GL_ERRORS();
 	}
 }
 
@@ -1191,6 +1196,8 @@ PlayMode::Button_UI::Button_UI(glm::vec2 _anchor, std::string icon_png, call_bac
 
 	active = false;
 	clicked = false;
+
+	GL_ERRORS();
 }
 
 void PlayMode::Button_UI::draw(glm::uvec2 const &drawable_size) {
@@ -1203,6 +1210,8 @@ void PlayMode::Button_UI::draw(glm::uvec2 const &drawable_size) {
 	else draw_textured_quad(&clickedTex, anchor.x, anchor.y, drawable_size);
 
 	draw_textured_quad(&icon, anchor.x, anchor.y, drawable_size);
+
+	GL_ERRORS();
 }
 
 void PlayMode::Button_UI::interact(int mouse_x, int mouse_y, glm::vec2 drawable_size) {
@@ -1278,7 +1287,6 @@ void PlayMode::draw_stats(glm::uvec2 const &drawable_size, float x, float y) {
 }
 
 void PlayMode::draw_text_lines(glm::uvec2 const &drawable_size, float x, float y) {
-
 	GLuint vbo{0}, vao{0}, texture{0};
 
 	GL_ERRORS();
@@ -1423,7 +1431,7 @@ void PlayMode::draw_text_line(std::string s, glm::uvec2 const &drawable_size, fl
 }
 
 // https://dcemulation.org/index.php?title=Loading_PNG_images_as_OpenGL_textures
-int PlayMode::png_to_gl_texture(struct texture * tex, std::string filename) {
+static int png_to_gl_texture(PlayMode::texture * tex, std::string filename) {
 
 	#define CLEANUP(x) { ret = (x); goto cleanup; }
 
@@ -1547,7 +1555,7 @@ cleanup:
 	return ret;
 }
 
-void PlayMode::draw_textured_quad(struct texture * tex, float x0, float y0, glm::uvec2 const &drawable_size) {
+static void draw_textured_quad(PlayMode::texture * tex, float x0, float y0, glm::uvec2 const &drawable_size) {
 	GLuint vbo{0}, vao{0};
 
 	glUseProgram(png_program);
