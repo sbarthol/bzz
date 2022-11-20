@@ -14,6 +14,9 @@
 #include <random>
 #include <unordered_set>
 #include <fstream>
+#include <iostream>
+#include <errno.h>
+#include <stdio.h>
 
 int PlayMode::Cricket::seq = 0;
 
@@ -43,6 +46,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 			struct PlayMode::texture tex;
 			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/sand.png"));
   		if(ret) {
+			printf("%s\n", data_path("../scenes/sand.png").c_str());
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
   		}
@@ -52,7 +56,9 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
 			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/floor.png"));
+			
   		if(ret) {
+			printf("%s\n", data_path("../scenes/floor.png").c_str());
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
   		}
@@ -63,6 +69,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 			struct PlayMode::texture tex;
 			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/wallpaper.png"));
   		if(ret) {
+			printf("%s\n", data_path("../scenes/wallpaper.png").c_str());
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
   		}
@@ -1091,6 +1098,48 @@ bool PlayMode::sell_mature() {
 	return success;
 }
 
+bool PlayMode::remove_dead_crickets() {
+	std::cout << "removing dead" << std::endl;
+
+	std::unordered_set<std::string> dead_cricket_names;
+	std::vector<Cricket> dead_crickets;
+	std::vector<Cricket> live_crickets;
+	bool success = false;
+
+	for(Cricket &cricket: Crickets) {
+		if(cricket.is_dead()) {
+			dead_crickets.push_back(cricket);
+			dead_cricket_names.insert("Cricket_" + std::to_string(cricket.cricketID));
+		}else{
+			live_crickets.push_back(cricket);
+		}
+	}
+
+	assert(dead_crickets.size() == numDeadCrickets);
+
+	if (numDeadCrickets > 0) {
+		success = true;
+	}
+	
+
+	numDeadCrickets = 0;
+	Crickets = std::move(live_crickets);
+
+	auto it = scene.drawables.begin();
+	while(it != scene.drawables.end()) {
+		Scene::Drawable dr = *it;
+		if ( dead_cricket_names.count(dr.transform->name) ) {
+			it = scene.drawables.erase(it);
+		} else {
+			it++;
+		}
+	}
+
+	return success;
+}
+
+
+
 void Popup_UI::draw(DrawLines &lines) {
 	// hard coded: should change in the future
 	const uint16_t width = 1280;
@@ -1335,14 +1384,16 @@ int PlayMode::png_to_gl_texture(struct texture * tex, std::string filename) {
 		CLEANUP(1);
 	}
 
-	// file = fopen_s(filename.c_str(), "rb");
-	// if(!file) {
-	// 	CLEANUP(2);
-	// }
-	int err = fopen_s(&file, filename.c_str(), "rb");
-	if (err != 0) {
+	file = fopen(filename.c_str(), "rb");
+	if(!file) {
 		CLEANUP(2);
 	}
+	// printf("sometjign happened\n");
+	// file = fopen( filename.c_str(), "rb");
+	// if (file != NULL) {
+	// 	printf("null file pointer\n");
+	// 	CLEANUP(2);
+	// }
 
 
 	parser = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);

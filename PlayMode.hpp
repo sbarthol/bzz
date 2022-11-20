@@ -168,6 +168,7 @@ struct PlayMode : Mode {
 	bool buy_food();
 	bool buy_eggs();
 	bool sell_mature();
+	bool remove_dead_crickets();
 
 	std::vector<Popup_UI> popups;
 
