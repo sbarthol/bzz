@@ -33,8 +33,10 @@ struct Popup_UI {
 };
 
 struct PlayMode : Mode {
-	PlayMode();
+	PlayMode(glm::uvec2 window_size_);
 	virtual ~PlayMode();
+
+	glm::uvec2 window_size;
 
 	//functions called by main loop:
 	virtual bool handle_event(SDL_Event const &, glm::uvec2 const &window_size) override;

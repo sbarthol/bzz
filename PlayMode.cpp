@@ -243,9 +243,9 @@ void PlayMode::kill_cricket(Cricket &cricket) {
 }
 
 
-PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
+PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*bzz_scene), game_UI(this) {
 
-	
+
 	for (auto &transform : scene.transforms) {
 
 		if (transform.name == "AdultCricket") {
@@ -361,7 +361,7 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 	GL_ERRORS();
 
 	// Initialize text data structures
-	#define FONT_SIZE 100
+	#define FONT_SIZE 50
 
 	// https://www.1001fonts.com/november-font.html
 	std::string fontfile = data_path("../scenes/novem___.ttf");
@@ -472,7 +472,7 @@ PlayMode::~PlayMode() {
 	//FT_Done_FreeType(ft_library);
 }
 
-bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
+bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size_) {
 
 	if (evt.type == SDL_KEYDOWN) {
 		if (evt.key.keysym.sym == SDLK_a) {
@@ -835,7 +835,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 	// Draw stats
 	{
-		draw_stats(drawable_size, -1.f, -0.9f);
+		draw_stats(drawable_size, -1.f, -0.7f);
 	}
 
 	{ //use DrawLines to overlay some text:
@@ -875,7 +875,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	if (notification_active) {
 		draw_filled_rect(glm::vec2(-1.f,-1.f), glm::vec2(1.f, 1.f), glm::vec4(0.f, 0.f, 0.f, 0.4f));
 		draw_textured_quad(&board_tex, -0.6f, -0.6f, drawable_size);
-		draw_text_lines(drawable_size, -0.58f, 0.36f);
+		draw_text_lines(drawable_size, -0.78f, 0.36f);
 		GL_ERRORS();
 		glDisable(GL_DEPTH_TEST);
 		GL_ERRORS();
@@ -902,7 +902,7 @@ void PlayMode::display_notification(std::string filename) {
 			continue;
 		}
 		len++;
-		if((len >= 40 && c == ' ') || c=='\n') {
+		if((len >= 44 && c == ' ') || c=='\n') {
 			notification_text.push_back(text.substr(start,len));
 			start += len;
 			total_letters += len;
