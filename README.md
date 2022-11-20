@@ -25,6 +25,7 @@
     - [Food container](https://sketchfab.com/3d-models/cc0-food-container-4-03749821e3a9441e9868fea0a7d991cc#download)
     - [Camera](https://www.blenderkit.com/get-blenderkit/020ebba2-cc67-469a-bdf7-a399651277f3/)
     - [Tripod](https://www.blenderkit.com/get-blenderkit/0516967a-8de0-42ee-a6c4-86caf08174eb/)
+    - [Crate](https://www.blenderkit.com/get-blenderkit/82a709df-a59d-4e0a-9064-0db5be9d2639/)
 
 - Textures
     - [Metal](https://www.freepik.com/free-photo/metallic-textured-background_4139276.htm#query=metal%20texture&position=1&from_view=keyword)
@@ -36,6 +37,7 @@
     - [Fruit bag texture](https://www.festfoods.com/shop/frozen/frozen_fruits/berries/dole_sliced_frozen_strawberries_14_oz_pouch/p/38655)
     - [Soil](https://www.freepik.com/free-photo/top-view-soil_4606525.htm#query=soil%20texture&position=2&from_view=search&track=sph)
     - [Camera lens](http://photoguild.org/camera-lens/)
+    - [Crate](https://www.pexels.com/photo/brown-wooden-board-164005/)
 
 - Audio
     - [Chirping](https://freesound.org/people/GB01/sounds/530477/)
