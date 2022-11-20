@@ -4,7 +4,6 @@
 #include "Scene.hpp"
 #include "Sound.hpp"
 #include "DrawLines.hpp"
-#include "Buttons.hpp"
 
 #include <glm/glm.hpp>
 
@@ -30,30 +29,6 @@ struct Popup_UI {
 	 : anchor(_anchor), text(_text), color(_color), duration(_duration), start_time(std::chrono::high_resolution_clock::now()) {}
 
 	void draw(DrawLines &lines);
-};
-
-struct Button_UI {
-	glm::vec2 anchor;
-    PlayMode::texture clickedTex;
-	PlayMode::texture unclickedTex;
-	PlayMode::texture icon;
-
-	// button state
-	bool active;
-	bool clicked;
-	std::chrono::time_point<std::chrono::high_resolution_clock> reset_time;
-
-	enum call_back {
-		BUY_FOOD = 0,
-		SELL_MATURE = 1,
-		BUY_EGG = 2
-	};
-	call_back trigger_event;
-
-	Button_UI(glm::vec2 _anchor, std::string icon_png, call_back _trigger_event);
-
-	void draw();
-	void interact(int mouse_x, int mouse_y, glm::vec2 drawable_size);
 };
 
 struct PlayMode : Mode {
@@ -183,13 +158,38 @@ struct PlayMode : Mode {
    uint16_t w, h;
  	} strawberry_tex, egg_tex, dollars_tex, button_clicked_tex, button_unclicked_tex, board_tex, lens_view_tex;
 	static int png_to_gl_texture(struct texture * tex, std::string filename);
-	void draw_textured_quad(struct texture * tex, float x0, float y0, glm::uvec2 const &drawable_size);
+	static void draw_textured_quad(struct texture * tex, float x0, float y0, glm::uvec2 const &drawable_size);
 	GLuint png_program;
 
 
 	// Sound
 	std::shared_ptr< Sound::PlayingSample > chirping_loop;
 
+
+	// Buttons
+	struct Button_UI {
+		glm::vec2 anchor;
+		texture clickedTex;
+		texture unclickedTex;
+		texture icon;
+
+		// button state
+		bool active;
+		bool clicked;
+		std::chrono::time_point<std::chrono::high_resolution_clock> reset_time;
+
+		enum call_back {
+			BUY_FOOD = 0,
+			SELL_MATURE = 1,
+			BUY_EGG = 2
+		};
+		call_back trigger_event;
+
+		Button_UI(glm::vec2 _anchor, std::string icon_png, call_back _trigger_event);
+
+		void draw(glm::uvec2 const &drawable_size);
+		void interact(int mouse_x, int mouse_y, glm::vec2 drawable_size);
+	};
 	void invoke_callback(Button_UI::call_back);
 	bool buy_food();
 	bool buy_eggs();
