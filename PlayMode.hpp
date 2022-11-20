@@ -121,8 +121,8 @@ struct PlayMode : Mode {
 	std::string load_text_from_file(std::string filename);
 	size_t total_letters{0};
 	size_t letter_counter{0};
-	float current_elapsed = 0.0;
-	float max_elapsed = 0.02;
+	float current_elapsed = 0.0f;
+	float max_elapsed = 0.02f;
 
 	// Tutorial
 	bool first_time_food = false; 
@@ -144,8 +144,8 @@ struct PlayMode : Mode {
 	size_t numDeadCrickets = 0;
 	float totalMoney = 220.f;
 	float totalFood = 200.f;
-	size_t eggPrice = 200;
-	size_t foodPrice = 200;
+	float eggPrice = 200.f;
+	float foodPrice = 200.f;
 	bool gameOver = false;
 
 	// PNG

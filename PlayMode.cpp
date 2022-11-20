@@ -352,11 +352,14 @@ PlayMode::PlayMode() : scene(*bzz_scene), game_UI(this) {
 	/* Initialize FreeType and create FreeType font face. */
   FT_Error ft_error;
 
-  if ((ft_error = FT_Init_FreeType (&ft_library)))
+  ft_error = FT_Init_FreeType (&ft_library);
+  if (ft_error)
     abort();
-  if ((ft_error = FT_New_Face (ft_library, fontfile.c_str(), 0, &ft_face)))
+  ft_error = FT_New_Face (ft_library, fontfile.c_str(), 0, &ft_face);
+  if (ft_error)
     abort();
-  if ((ft_error = FT_Set_Char_Size (ft_face, FONT_SIZE*64, FONT_SIZE*64, 0, 0)))
+  ft_error = FT_Set_Char_Size (ft_face, FONT_SIZE*64, FONT_SIZE*64, 0, 0);
+  if (ft_error)
     abort();
 
   /* Create hb-ft font. */
@@ -568,9 +571,9 @@ void PlayMode::update(float elapsed) {
 			} else if (cricket.is_baby()) {
 				if(!first_time_babies) {
 					first_time_babies = true;
-					schedule_notification(data_path("../text/first_time_babies.txt"), 1.000);
-					schedule_notification(data_path("../text/first_time_babies2.txt"), 1.001);
-					schedule_notification(data_path("../text/first_time_babies3.txt"), 1.002);
+					schedule_notification(data_path("../text/first_time_babies.txt"), 1.000f);
+					schedule_notification(data_path("../text/first_time_babies2.txt"), 1.001f);
+					schedule_notification(data_path("../text/first_time_babies3.txt"), 1.002f);
 				}
 				hatch_cricket(cricket);
 			}
@@ -645,7 +648,7 @@ void PlayMode::update(float elapsed) {
 	if ((uint64_t)(total_elapsed)%2 == 0)
 	{
 		auto is_sick = [=, *this](){
-			return uint(rand() % 2000 + 1) < 8*numDeadCrickets/Crickets.size();
+			return size_t(rand() % 2000 + 1) < 8*numDeadCrickets/Crickets.size();
 		};
 
 		for( Cricket &cricket: Crickets) {
@@ -656,8 +659,8 @@ void PlayMode::update(float elapsed) {
 			if(cricket.is_dead()) {
 				if(!first_time_sick) {
 					first_time_sick = true;
-					schedule_notification(data_path("../text/first_time_sick.txt"), 1.5);
-					schedule_notification(data_path("../text/first_time_sick2.txt"), 1.5001);
+					schedule_notification(data_path("../text/first_time_sick.txt"), 1.5f);
+					schedule_notification(data_path("../text/first_time_sick2.txt"), 1.5001f);
 				}
 				kill_cricket(cricket);
 			}
@@ -843,19 +846,19 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		}
 	}
 
-	draw_textured_quad(&button_unclicked_tex, -0.9, 0.5, drawable_size);
-	draw_textured_quad(&strawberry_tex, -0.9, 0.5, drawable_size);
-	draw_textured_quad(&button_clicked_tex, -0.9 + 0.2, 0.5, drawable_size);
-	draw_textured_quad(&strawberry_tex, -0.9 + 0.2, 0.5, drawable_size);
-	draw_textured_quad(&button_unclicked_tex, -0.9, 0.1, drawable_size);
-	draw_textured_quad(&egg_tex, -0.9, 0.1, drawable_size);
-	draw_textured_quad(&button_unclicked_tex, -0.9, -0.3, drawable_size);
-	draw_textured_quad(&dollars_tex, -0.9, -0.3, drawable_size);
+	draw_textured_quad(&button_unclicked_tex, -0.9f, 0.5f, drawable_size);
+	draw_textured_quad(&strawberry_tex, -0.9f, 0.5f, drawable_size);
+	draw_textured_quad(&button_clicked_tex, -0.9f + 0.2f, 0.5f, drawable_size);
+	draw_textured_quad(&strawberry_tex, -0.9f + 0.2f, 0.5f, drawable_size);
+	draw_textured_quad(&button_unclicked_tex, -0.9f, 0.1f, drawable_size);
+	draw_textured_quad(&egg_tex, -0.9f, 0.1f, drawable_size);
+	draw_textured_quad(&button_unclicked_tex, -0.9f, -0.3f, drawable_size);
+	draw_textured_quad(&dollars_tex, -0.9f, -0.3f, drawable_size);
 
 	if (notification_active) {
 		draw_filled_rect(glm::vec2(-1.f,-1.f), glm::vec2(1.f, 1.f), glm::vec4(0.f, 0.f, 0.f, 0.4f));
 		draw_textured_quad(&board_tex, -0.6f, -0.6f, drawable_size);
-		draw_text_lines(drawable_size,-0.58 , 0.36);
+		draw_text_lines(drawable_size, -0.58f, 0.36f);
 		GL_ERRORS();
 		glDisable(GL_DEPTH_TEST);
 		GL_ERRORS();
@@ -871,7 +874,7 @@ void PlayMode::display_notification(std::string filename) {
 	notification_active = true;
 	notification_text = std::vector<std::string>();
 
-	uint start=0, len=0;
+	size_t start=0, len=0;
 	total_letters = 0;
 	for(char c:text) {
 		if(c=='\n') {
@@ -992,8 +995,8 @@ bool PlayMode::buy_food() {
 		first_time_food = true;
 		schedule_notification(data_path("../text/first_time_food.txt"), 1.5);
 	}
-	const float unitFood = foodPrice;
-	const float unitPrice = 10;
+	const size_t unitFood = 10;
+	const float unitPrice = foodPrice;
 
 	return buy<float>(unitFood, unitPrice, totalFood, totalMoney);
 }
@@ -1082,7 +1085,7 @@ bool PlayMode::sell_mature() {
 	if (success) {
 		// glm::u8vec4(0x00, 0x00, 0x00, 0x00)
 		
-		popups.emplace_back(glm::vec2(235,345), "+$" + std::to_string(int(profit)), glm::u8vec4(0x38, 0x66, 0x41, 0x00), 0.75);
+		popups.emplace_back(glm::vec2(235,345), "+$" + std::to_string(int(profit)), glm::u8vec4(0x38, 0x66, 0x41, 0x00), 0.75f);
 	}
 
 	return success;
@@ -1332,10 +1335,15 @@ int PlayMode::png_to_gl_texture(struct texture * tex, std::string filename) {
 		CLEANUP(1);
 	}
 
-	file = fopen(filename.c_str(), "rb");
-	if(!file) {
+	// file = fopen_s(filename.c_str(), "rb");
+	// if(!file) {
+	// 	CLEANUP(2);
+	// }
+	int err = fopen_s(&file, filename.c_str(), "rb");
+	if (err != 0) {
 		CLEANUP(2);
 	}
+
 
 	parser = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
 	if(!parser) {
@@ -1370,7 +1378,7 @@ int PlayMode::png_to_gl_texture(struct texture * tex, std::string filename) {
 	}
 	png_read_update_info(parser, info);
 
-	rowbytes = png_get_rowbytes(parser, info);
+	rowbytes = (int) png_get_rowbytes(parser, info);
 	rowbytes += 3 - ((rowbytes-1) % 4); // align to 4 bytes
 
 	data = (uint8_t*)malloc(rowbytes * h * sizeof(png_byte) + 15);
@@ -1401,8 +1409,8 @@ int PlayMode::png_to_gl_texture(struct texture * tex, std::string filename) {
 	GL_ERRORS();
 
 	tex->id = texture_id;
-	tex->w = w;
-	tex->h = h;
+	tex->w = (uint16_t) w;
+	tex->h = (uint16_t) h;
 	tex->format = texture_format;
 	tex->min_filter = tex->mag_filter = GL_NEAREST;
 
