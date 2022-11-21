@@ -1422,16 +1422,22 @@ int PlayMode::png_to_gl_texture(PlayMode::texture * tex, std::string filename) {
 		CLEANUP(1);
 	}
 
-	// file = fopen(filename.c_str(), "rb");
-	// if(!file) {
-	// 	CLEANUP(2);
-	// }
-	// printf("sometjign happened\n");
-	int err = fopen_s(&file, filename.c_str(), "rb");
-	if (err != 0) {
-		printf("null file pointer\n");
-		CLEANUP(2);
-	}
+	// You can delete the compiler directive if you can
+	// figure out a way for fopen_s to work on Mac and Linux
+	#ifdef _WIN32
+		int err = fopen_s(&file, filename.c_str(), "rb");
+		if (err != 0) {
+			printf("null file pointer\n");
+			CLEANUP(2);
+		}
+	#else
+		file = fopen(filename.c_str(), "rb");
+		if(!file) {
+			CLEANUP(2);
+		}
+		printf("sometjign happened\n");
+	#endif
+
 
 
 	parser = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
