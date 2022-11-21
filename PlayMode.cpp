@@ -141,7 +141,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Crate") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/crate.png"));
+			int ret = png_to_gl_texture(&tex, data_path("../scenes/crate.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -422,9 +422,9 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 	GL_ERRORS();
 
 	// set up buttons
-	buttons.emplace_back(glm::vec2(-0.9f, 0.5f), "../scenes/strawberry.png", Button_UI::BUY_FOOD);
-	buttons.emplace_back(glm::vec2(-0.9f + 0.2f, 0.5f), "../scenes/egg.png", Button_UI::BUY_EGG);
-	buttons.emplace_back(glm::vec2(-0.9f + 0.4f, 0.5f), "../scenes/dollars.png", Button_UI::SELL_MATURE);
+	buttons.emplace_back(this, glm::vec2(-0.9f, 0.5f), "../scenes/strawberry.png", Button_UI::BUY_FOOD);
+	buttons.emplace_back(this, glm::vec2(-0.9f + 0.2f, 0.5f), "../scenes/egg.png", Button_UI::BUY_EGG);
+	buttons.emplace_back(this, glm::vec2(-0.9f + 0.4f, 0.5f), "../scenes/dollars.png", Button_UI::SELL_MATURE);
 
 	// load some png textures
 // 	int ret = png_to_gl_texture(&button_clicked_tex, data_path("../scenes/button_clicked.png"));
@@ -1183,8 +1183,8 @@ void Popup_UI::draw(DrawLines &lines) {
 	anchor.x += 0.5;
 }
 
-PlayMode::Button_UI::Button_UI(glm::vec2 _anchor, std::string icon_png, call_back _trigger_event)	:
-    anchor(_anchor), trigger_event(_trigger_event) {
+PlayMode::Button_UI::Button_UI(PlayMode* _game, glm::vec2 _anchor, std::string icon_png, call_back _trigger_event)	:
+    game(_game), anchor(_anchor), trigger_event(_trigger_event) {
 	
 	int ret;
 	ret = png_to_gl_texture(&clickedTex, data_path("../scenes/button_clicked.png"));
@@ -1206,8 +1206,8 @@ void PlayMode::Button_UI::draw(glm::uvec2 const &drawable_size) {
 		clicked = false;
 	}
 
-	if (clicked) draw_textured_quad(&unclickedTex, anchor.x, anchor.y, drawable_size);
-	else draw_textured_quad(&clickedTex, anchor.x, anchor.y, drawable_size);
+	if (clicked) draw_textured_quad(&clickedTex, anchor.x, anchor.y, drawable_size);
+	else draw_textured_quad(&unclickedTex, anchor.x, anchor.y, drawable_size);
 
 	draw_textured_quad(&icon, anchor.x, anchor.y, drawable_size);
 
@@ -1215,17 +1215,19 @@ void PlayMode::Button_UI::draw(glm::uvec2 const &drawable_size) {
 }
 
 void PlayMode::Button_UI::interact(int mouse_x, int mouse_y, glm::vec2 drawable_size) {
-	int x0 = (int) (anchor.x * drawable_size.x);
-	int y0 = (int) (anchor.x * drawable_size.x);
+	int x0 = (int) ((anchor.x + 1.f) / 2.f * drawable_size.x);
+	int y1 = (int) ((1 - (anchor.y + 1.f) / 2.f) * drawable_size.y);
 
-	int x1 = x0 + clickedTex.w;
-	int y1 = y0 + clickedTex.h;
+	int x1 = x0 + clickedTex.w / 2;
+	int y0 = y1 - clickedTex.h / 2;
 
 	if (mouse_x >= x0 && mouse_x <= x1 &&
 		mouse_y >= y0 && mouse_y <= y1) {
+
+		game->invoke_callback(trigger_event);
 		
 		clicked = true;
-		reset_time = std::chrono::high_resolution_clock::now() + std::chrono::microseconds(500);
+		reset_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(100);
 	}
 }
 
@@ -1453,16 +1455,16 @@ static int png_to_gl_texture(PlayMode::texture * tex, std::string filename) {
 		CLEANUP(1);
 	}
 
-	file = fopen(filename.c_str(), "rb");
-	if(!file) {
-		CLEANUP(2);
-	}
-	// printf("sometjign happened\n");
-	// file = fopen( filename.c_str(), "rb");
-	// if (file != NULL) {
-	// 	printf("null file pointer\n");
+	// file = fopen(filename.c_str(), "rb");
+	// if(!file) {
 	// 	CLEANUP(2);
 	// }
+	// printf("sometjign happened\n");
+	int err = fopen_s(&file, filename.c_str(), "rb");
+	if (err != 0) {
+		printf("null file pointer\n");
+		CLEANUP(2);
+	}
 
 
 	parser = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);

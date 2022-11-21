@@ -165,9 +165,10 @@ struct PlayMode : Mode {
 	// Sound
 	std::shared_ptr< Sound::PlayingSample > chirping_loop;
 
-
 	// Buttons
 	struct Button_UI {
+		PlayMode* game;
+
 		glm::vec2 anchor;
 		texture clickedTex;
 		texture unclickedTex;
@@ -185,7 +186,7 @@ struct PlayMode : Mode {
 		};
 		call_back trigger_event;
 
-		Button_UI(glm::vec2 _anchor, std::string icon_png, call_back _trigger_event);
+		Button_UI(PlayMode* _game, glm::vec2 _anchor, std::string icon_png, call_back _trigger_event);
 
 		void draw(glm::uvec2 const &drawable_size);
 		void interact(int mouse_x, int mouse_y, glm::vec2 drawable_size);
