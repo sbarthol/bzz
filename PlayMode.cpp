@@ -18,10 +18,6 @@
 #include <errno.h>
 #include <stdio.h>
 
-static int png_to_gl_texture(PlayMode::texture * tex, std::string filename);
-static void draw_textured_quad(PlayMode::texture * tex, float x0, float y0, glm::uvec2 const &drawable_size);
-static GLuint png_program;
-
 int PlayMode::Cricket::seq = 0;
 
 GLuint bzz_meshes_for_lit_color_texture_program = 0;
@@ -48,7 +44,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Bedding") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = png_to_gl_texture(&tex, data_path("../scenes/sand.png"));
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/sand.png"));
   		if(ret) {
 			printf("%s\n", data_path("../scenes/sand.png").c_str());
   			printf("Cannot load texture, error code %d.\n", ret);
@@ -59,7 +55,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Floor") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = png_to_gl_texture(&tex, data_path("../scenes/floor.png"));
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/floor.png"));
   		if(ret) {
 			printf("%s\n", data_path("../scenes/floor.png").c_str());
   			printf("Cannot load texture, error code %d.\n", ret);
@@ -70,7 +66,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Walls") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = png_to_gl_texture(&tex, data_path("../scenes/wallpaper.png"));
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/wallpaper.png"));
   		if(ret) {
 			printf("%s\n", data_path("../scenes/wallpaper.png").c_str());
   			printf("Cannot load texture, error code %d.\n", ret);
@@ -81,7 +77,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "SoilBag") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = png_to_gl_texture(&tex, data_path("../scenes/soilbag.png"));
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/soilbag.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -91,7 +87,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Table") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = png_to_gl_texture(&tex, data_path("../scenes/table.png"));
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/table.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -101,7 +97,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Frame") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = png_to_gl_texture(&tex, data_path("../scenes/frame.png"));
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/frame.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -111,7 +107,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Fruit") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = png_to_gl_texture(&tex, data_path("../scenes/fruit.png"));
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/fruit.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -121,7 +117,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Soil") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = png_to_gl_texture(&tex, data_path("../scenes/soil.png"));
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/soil.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -131,7 +127,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Lens") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = png_to_gl_texture(&tex, data_path("../scenes/lens.png"));
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/lens.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -141,7 +137,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 		if(mesh_name == "Crate") {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
-			int ret = png_to_gl_texture(&tex, data_path("../scenes/crate.png"));
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/crate.png"));
   		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -428,12 +424,12 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 
 	// load some png textures
 	int ret;
-	ret = png_to_gl_texture(&board_tex, data_path("../scenes/board.png"));
+	ret = PlayMode::png_to_gl_texture(&board_tex, data_path("../scenes/board.png"));
   if(ret) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
   }
-	ret = png_to_gl_texture(&lens_view_tex, data_path("../scenes/lens_view.png"));
+	ret = PlayMode::png_to_gl_texture(&lens_view_tex, data_path("../scenes/lens_view.png"));
   if(ret) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
@@ -853,14 +849,14 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 	if (notification_active) {
 		draw_filled_rect(glm::vec2(-1.f,-1.f), glm::vec2(1.f, 1.f), glm::vec4(0.f, 0.f, 0.f, 0.4f));
-		draw_textured_quad(&board_tex, -0.6f, -0.6f, drawable_size);
+		PlayMode::draw_textured_quad(&board_tex, -0.6f, -0.6f, drawable_size);
 		draw_text_lines(drawable_size, -0.78f, 0.36f);
 		GL_ERRORS();
 		glDisable(GL_DEPTH_TEST);
 		GL_ERRORS();
 
 	} else if (alt_view) {
-		draw_textured_quad(&lens_view_tex, -0.45f, -0.7f, drawable_size);
+		PlayMode::draw_textured_quad(&lens_view_tex, -0.45f, -0.7f, drawable_size);
 		GL_ERRORS();
 	}
 }
@@ -1153,11 +1149,11 @@ PlayMode::Button_UI::Button_UI(PlayMode* _game, glm::vec2 _anchor, std::string i
     game(_game), anchor(_anchor), trigger_event(_trigger_event) {
 	
 	int ret;
-	ret = png_to_gl_texture(&clickedTex, data_path("../scenes/button_clicked.png"));
+	ret = PlayMode::png_to_gl_texture(&clickedTex, data_path("../scenes/button_clicked.png"));
 	assert(ret == 0);
-	ret = png_to_gl_texture(&unclickedTex, data_path("../scenes/button_unclicked.png"));
+	ret = PlayMode::png_to_gl_texture(&unclickedTex, data_path("../scenes/button_unclicked.png"));
 	assert(ret == 0);
-	ret = png_to_gl_texture(&icon, data_path(icon_png));
+	ret = PlayMode::png_to_gl_texture(&icon, data_path(icon_png));
 	assert(ret == 0);
 
 	active = false;
@@ -1172,10 +1168,10 @@ void PlayMode::Button_UI::draw(glm::uvec2 const &drawable_size) {
 		clicked = false;
 	}
 
-	if (clicked) draw_textured_quad(&clickedTex, anchor.x, anchor.y, drawable_size);
-	else draw_textured_quad(&unclickedTex, anchor.x, anchor.y, drawable_size);
+	if (clicked) PlayMode::draw_textured_quad(&clickedTex, anchor.x, anchor.y, drawable_size);
+	else PlayMode::draw_textured_quad(&unclickedTex, anchor.x, anchor.y, drawable_size);
 
-	draw_textured_quad(&icon, anchor.x, anchor.y, drawable_size);
+	PlayMode::draw_textured_quad(&icon, anchor.x, anchor.y, drawable_size);
 
 	GL_ERRORS();
 }
@@ -1404,7 +1400,7 @@ void PlayMode::draw_text_line(std::string s, glm::uvec2 const &drawable_size, fl
 }
 
 // https://dcemulation.org/index.php?title=Loading_PNG_images_as_OpenGL_textures
-static int png_to_gl_texture(PlayMode::texture * tex, std::string filename) {
+int PlayMode::png_to_gl_texture(PlayMode::texture * tex, std::string filename) {
 
 	#define CLEANUP(x) { ret = (x); goto cleanup; }
 
@@ -1528,7 +1524,7 @@ cleanup:
 	return ret;
 }
 
-static void draw_textured_quad(PlayMode::texture * tex, float x0, float y0, glm::uvec2 const &drawable_size) {
+void PlayMode::draw_textured_quad(PlayMode::texture * tex, float x0, float y0, glm::uvec2 const &drawable_size) {
 	GLuint vbo{0}, vao{0};
 
 	glUseProgram(png_program);

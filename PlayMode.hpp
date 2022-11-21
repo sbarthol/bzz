@@ -157,6 +157,9 @@ struct PlayMode : Mode {
 		GLenum mag_filter;
 		uint16_t w, h;
  	} board_tex, lens_view_tex;
+	static int png_to_gl_texture(PlayMode::texture * tex, std::string filename);
+	static void draw_textured_quad(PlayMode::texture * tex, float x0, float y0, glm::uvec2 const &drawable_size);
+	static inline GLuint png_program = 0;
 
 	// Sound
 	std::shared_ptr< Sound::PlayingSample > chirping_loop;
