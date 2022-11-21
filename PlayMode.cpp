@@ -427,31 +427,6 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 	buttons.emplace_back(this, glm::vec2(-0.9f + 0.4f, 0.5f), "../scenes/dollars.png", Button_UI::SELL_MATURE);
 
 	// load some png textures
-// 	int ret = png_to_gl_texture(&button_clicked_tex, data_path("../scenes/button_clicked.png"));
-//   if(ret) {
-//   	printf("Cannot load texture, error code %d.\n", ret);
-//     abort();
-//   }
-// 	ret = png_to_gl_texture(&button_unclicked_tex, data_path("../scenes/button_unclicked.png"));
-//   if(ret) {
-//   	printf("Cannot load texture, error code %d.\n", ret);
-//     abort();
-//   }
-// 	ret = png_to_gl_texture(&strawberry_tex, data_path("../scenes/strawberry.png"));
-//   if(ret) {
-//   	printf("Cannot load texture, error code %d.\n", ret);
-//     abort();
-//   }
-// 	ret = png_to_gl_texture(&egg_tex, data_path("../scenes/egg.png"));
-//   if(ret) {
-//   	printf("Cannot load texture, error code %d.\n", ret);
-//     abort();
-//   }
-// 	ret = png_to_gl_texture(&dollars_tex, data_path("../scenes/dollars.png"));
-//   if(ret) {
-//   	printf("Cannot load texture, error code %d.\n", ret);
-//     abort();
-//   }
 	int ret;
 	ret = png_to_gl_texture(&board_tex, data_path("../scenes/board.png"));
   if(ret) {
@@ -876,15 +851,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 		}
 	}
 
-	// draw_textured_quad(&button_unclicked_tex, -0.9f, 0.5f, drawable_size);
-	// draw_textured_quad(&strawberry_tex, -0.9f, 0.5f, drawable_size);
-	// draw_textured_quad(&button_clicked_tex, -0.9f + 0.2f, 0.5f, drawable_size);
-	// draw_textured_quad(&strawberry_tex, -0.9f + 0.2f, 0.5f, drawable_size);
-	// draw_textured_quad(&button_unclicked_tex, -0.9f, 0.1f, drawable_size);
-	// draw_textured_quad(&egg_tex, -0.9f, 0.1f, drawable_size);
-	// draw_textured_quad(&button_unclicked_tex, -0.9f, -0.3f, drawable_size);
-	// draw_textured_quad(&dollars_tex, -0.9f, -0.3f, drawable_size);
-
 	if (notification_active) {
 		draw_filled_rect(glm::vec2(-1.f,-1.f), glm::vec2(1.f, 1.f), glm::vec4(0.f, 0.f, 0.f, 0.4f));
 		draw_textured_quad(&board_tex, -0.6f, -0.6f, drawable_size);
@@ -1215,6 +1181,11 @@ void PlayMode::Button_UI::draw(glm::uvec2 const &drawable_size) {
 }
 
 void PlayMode::Button_UI::interact(int mouse_x, int mouse_y, glm::vec2 drawable_size) {
+	// The anchor is set to the bottom-left corner of the image
+	// both x and y components of anchor are in range [-1, 1]
+
+	// mouse x and y are in pixel space: top-left corner is (0, 0),
+	// bottom-right corner is (drawable_size.x, drawable_size.y)
 	int x0 = (int) ((anchor.x + 1.f) / 2.f * drawable_size.x);
 	int y1 = (int) ((1 - (anchor.y + 1.f) / 2.f) * drawable_size.y);
 
