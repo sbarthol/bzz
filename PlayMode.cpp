@@ -56,7 +56,6 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 			drawable.pipeline.blend = true;
 			struct PlayMode::texture tex;
 			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/floor.png"));
-			
   		if(ret) {
 			printf("%s\n", data_path("../scenes/floor.png").c_str());
   			printf("Cannot load texture, error code %d.\n", ret);
@@ -243,7 +242,7 @@ void PlayMode::kill_cricket(Cricket &cricket) {
 }
 
 
-PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*bzz_scene), game_UI(this) {
+PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*bzz_scene){
 
 
 	for (auto &transform : scene.transforms) {
@@ -418,38 +417,19 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
   glLinkProgram(png_program);
 	GL_ERRORS();
 
+	// set up buttons
+	buttons.emplace_back(this, glm::vec2(-0.9f, 0.5f), "../scenes/strawberry.png", Button_UI::BUY_FOOD);
+	buttons.emplace_back(this, glm::vec2(-0.9f + 0.2f, 0.5f), "../scenes/egg.png", Button_UI::BUY_EGG);
+	buttons.emplace_back(this, glm::vec2(-0.9f + 0.4f, 0.5f), "../scenes/dollars.png", Button_UI::SELL_MATURE);
+
 	// load some png textures
-	int ret = png_to_gl_texture(&button_clicked_tex, data_path("../scenes/button_clicked.png"));
+	int ret;
+	ret = PlayMode::png_to_gl_texture(&board_tex, data_path("../scenes/board.png"));
   if(ret) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
   }
-	ret = png_to_gl_texture(&button_unclicked_tex, data_path("../scenes/button_unclicked.png"));
-  if(ret) {
-  	printf("Cannot load texture, error code %d.\n", ret);
-    abort();
-  }
-	ret = png_to_gl_texture(&strawberry_tex, data_path("../scenes/strawberry.png"));
-  if(ret) {
-  	printf("Cannot load texture, error code %d.\n", ret);
-    abort();
-  }
-	ret = png_to_gl_texture(&egg_tex, data_path("../scenes/egg.png"));
-  if(ret) {
-  	printf("Cannot load texture, error code %d.\n", ret);
-    abort();
-  }
-	ret = png_to_gl_texture(&dollars_tex, data_path("../scenes/dollars.png"));
-  if(ret) {
-  	printf("Cannot load texture, error code %d.\n", ret);
-    abort();
-  }
-	ret = png_to_gl_texture(&board_tex, data_path("../scenes/board.png"));
-  if(ret) {
-  	printf("Cannot load texture, error code %d.\n", ret);
-    abort();
-  }
-	ret = png_to_gl_texture(&lens_view_tex, data_path("../scenes/lens_view.png"));
+	ret = PlayMode::png_to_gl_texture(&lens_view_tex, data_path("../scenes/lens_view.png"));
   if(ret) {
   	printf("Cannot load texture, error code %d.\n", ret);
     abort();
@@ -524,8 +504,9 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size_
 		if(!notification_active) {
 			int x, y;
 			SDL_GetMouseState(&x, &y);
-			std::cout << x << ", " << y << std::endl;
-			game_UI.update(x, y, evt.type == SDL_MOUSEBUTTONDOWN);
+			for (auto &button: buttons) {
+				button.interact(x, y, window_size);
+			}
 			return true;
 		} else {
 			return false;
@@ -850,7 +831,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			0.0f, 0.0f, 1.0f, 0.0f,
 			0.0f, 0.0f, 0.0f, 1.0f
 		));
-		game_UI.draw();
 
 		auto popup = popups.begin();
 		while(popup != popups.end()) {
@@ -863,27 +843,23 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 				popup = popups.erase(popup);
 			}
 		}
-	}
 
-	draw_textured_quad(&button_unclicked_tex, -0.9f, 0.5f, drawable_size);
-	draw_textured_quad(&strawberry_tex, -0.9f, 0.5f, drawable_size);
-	draw_textured_quad(&button_clicked_tex, -0.9f + 0.2f, 0.5f, drawable_size);
-	draw_textured_quad(&strawberry_tex, -0.9f + 0.2f, 0.5f, drawable_size);
-	draw_textured_quad(&button_unclicked_tex, -0.9f, 0.1f, drawable_size);
-	draw_textured_quad(&egg_tex, -0.9f, 0.1f, drawable_size);
-	draw_textured_quad(&button_unclicked_tex, -0.9f, -0.3f, drawable_size);
-	draw_textured_quad(&dollars_tex, -0.9f, -0.3f, drawable_size);
+		for (auto &button : buttons) {
+			button.draw(drawable_size);
+		}
+	}
 
 	if (notification_active) {
 		draw_filled_rect(glm::vec2(-1.f,-1.f), glm::vec2(1.f, 1.f), glm::vec4(0.f, 0.f, 0.f, 0.4f));
-		draw_textured_quad(&board_tex, -0.6f, -0.6f, drawable_size);
+		PlayMode::draw_textured_quad(&board_tex, -0.6f, -0.6f, drawable_size);
 		draw_text_lines(drawable_size, -0.78f, 0.36f);
 		GL_ERRORS();
 		glDisable(GL_DEPTH_TEST);
 		GL_ERRORS();
 
 	} else if (alt_view) {
-		draw_textured_quad(&lens_view_tex, -0.45f, -0.7f, drawable_size);
+		PlayMode::draw_textured_quad(&lens_view_tex, -0.45f, -0.7f, drawable_size);
+		GL_ERRORS();
 	}
 }
 
@@ -1171,6 +1147,59 @@ void Popup_UI::draw(DrawLines &lines) {
 	anchor.x += 0.5;
 }
 
+PlayMode::Button_UI::Button_UI(PlayMode* _game, glm::vec2 _anchor, std::string icon_png, call_back _trigger_event)	:
+    game(_game), anchor(_anchor), trigger_event(_trigger_event) {
+	
+	int ret;
+	ret = PlayMode::png_to_gl_texture(&clickedTex, data_path("../scenes/button_clicked.png"));
+	assert(ret == 0);
+	ret = PlayMode::png_to_gl_texture(&unclickedTex, data_path("../scenes/button_unclicked.png"));
+	assert(ret == 0);
+	ret = PlayMode::png_to_gl_texture(&icon, data_path(icon_png));
+	assert(ret == 0);
+
+	active = false;
+	clicked = false;
+
+	GL_ERRORS();
+}
+
+void PlayMode::Button_UI::draw(glm::uvec2 const &drawable_size) {
+	auto cur_time = std::chrono::high_resolution_clock::now();
+	if (clicked && cur_time > reset_time) {
+		clicked = false;
+	}
+
+	if (clicked) PlayMode::draw_textured_quad(&clickedTex, anchor.x, anchor.y, drawable_size);
+	else PlayMode::draw_textured_quad(&unclickedTex, anchor.x, anchor.y, drawable_size);
+
+	PlayMode::draw_textured_quad(&icon, anchor.x, anchor.y, drawable_size);
+
+	GL_ERRORS();
+}
+
+void PlayMode::Button_UI::interact(int mouse_x, int mouse_y, glm::vec2 drawable_size) {
+	// The anchor is set to the bottom-left corner of the image
+	// both x and y components of anchor are in range [-1, 1]
+
+	// mouse x and y are in pixel space: top-left corner is (0, 0),
+	// bottom-right corner is (drawable_size.x, drawable_size.y)
+	int x0 = (int) ((anchor.x + 1.f) / 2.f * drawable_size.x);
+	int y1 = (int) ((1 - (anchor.y + 1.f) / 2.f) * drawable_size.y);
+
+	int x1 = x0 + clickedTex.w / 2;
+	int y0 = y1 - clickedTex.h / 2;
+
+	if (mouse_x >= x0 && mouse_x <= x1 &&
+		mouse_y >= y0 && mouse_y <= y1) {
+
+		game->invoke_callback(trigger_event);
+		
+		clicked = true;
+		reset_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(100);
+	}
+}
+
 std::string PlayMode::load_text_from_file(std::string filename) {
 	std::string text = "";
   std::ifstream input(filename);
@@ -1229,7 +1258,6 @@ void PlayMode::draw_stats(glm::uvec2 const &drawable_size, float x, float y) {
 }
 
 void PlayMode::draw_text_lines(glm::uvec2 const &drawable_size, float x, float y) {
-
 	GLuint vbo{0}, vao{0}, texture{0};
 
 	GL_ERRORS();
@@ -1374,7 +1402,7 @@ void PlayMode::draw_text_line(std::string s, glm::uvec2 const &drawable_size, fl
 }
 
 // https://dcemulation.org/index.php?title=Loading_PNG_images_as_OpenGL_textures
-int PlayMode::png_to_gl_texture(struct texture * tex, std::string filename) {
+int PlayMode::png_to_gl_texture(PlayMode::texture * tex, std::string filename) {
 
 	#define CLEANUP(x) { ret = (x); goto cleanup; }
 
@@ -1396,16 +1424,22 @@ int PlayMode::png_to_gl_texture(struct texture * tex, std::string filename) {
 		CLEANUP(1);
 	}
 
-	file = fopen(filename.c_str(), "rb");
-	if(!file) {
-		CLEANUP(2);
-	}
-	// printf("sometjign happened\n");
-	// file = fopen( filename.c_str(), "rb");
-	// if (file != NULL) {
-	// 	printf("null file pointer\n");
-	// 	CLEANUP(2);
-	// }
+	// You can delete the compiler directive if you can
+	// figure out a way for fopen_s to work on Mac and Linux
+	#ifdef _WIN32
+		int err = fopen_s(&file, filename.c_str(), "rb");
+		if (err != 0) {
+			printf("null file pointer\n");
+			CLEANUP(2);
+		}
+	#else
+		file = fopen(filename.c_str(), "rb");
+		if(!file) {
+			CLEANUP(2);
+		}
+		printf("sometjign happened\n");
+	#endif
+
 
 
 	parser = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
@@ -1498,7 +1532,7 @@ cleanup:
 	return ret;
 }
 
-void PlayMode::draw_textured_quad(struct texture * tex, float x0, float y0, glm::uvec2 const &drawable_size) {
+void PlayMode::draw_textured_quad(PlayMode::texture * tex, float x0, float y0, glm::uvec2 const &drawable_size) {
 	GLuint vbo{0}, vao{0};
 
 	glUseProgram(png_program);
