@@ -26,6 +26,7 @@
     - [Camera](https://www.blenderkit.com/get-blenderkit/020ebba2-cc67-469a-bdf7-a399651277f3/)
     - [Tripod](https://www.blenderkit.com/get-blenderkit/0516967a-8de0-42ee-a6c4-86caf08174eb/)
     - [Crate](https://www.blenderkit.com/get-blenderkit/82a709df-a59d-4e0a-9064-0db5be9d2639/)
+    - [Egg Carton](https://www.blenderkit.com/get-blenderkit/7caa8e5b-bd54-49cb-9f72-de8c19e7075c/)
 
 - Textures
     - [Metal](https://www.freepik.com/free-photo/metallic-textured-background_4139276.htm#query=metal%20texture&position=1&from_view=keyword)
