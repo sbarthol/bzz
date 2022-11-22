@@ -212,8 +212,8 @@ void PlayMode::spawn_cricket() {
 	Scene::Transform *transform = &scene.transforms.back();
 	Cricket cricket = Cricket(Cricket::seq++, transform);
 
-	cricket.hatchAge = get_rng_range(3.f, 7.f);
-	cricket.matureAge = get_rng_range(17.f, 23.f);
+	cricket.hatchAge = get_rng_range(6.f, 9.f);
+	cricket.matureAge = get_rng_range(20.f, 30.f);
 	cricket.lifeSpan = get_rng_range(80.f, 110.f);
 	
 	Crickets.push_back(cricket);
@@ -523,7 +523,7 @@ void PlayMode::update(float elapsed) {
 		auto top = notif_pq.top();
 		float t = -top.first;
 		std::string filename = top.second;
-		if(t <= total_elapsed) {
+		if(t <= total_elapsed && (!gameOver || filename.find("game_over.txt") != filename.npos)) {
 			notif_pq.pop();
 			display_notification(filename);
 		}
@@ -571,7 +571,6 @@ void PlayMode::update(float elapsed) {
 					first_time_babies = true;
 					schedule_notification(data_path("../text/first_time_babies.txt"), 1.000f);
 					schedule_notification(data_path("../text/first_time_babies2.txt"), 1.001f);
-					schedule_notification(data_path("../text/first_time_babies3.txt"), 1.002f);
 				}
 				hatch_cricket(cricket);
 			}
@@ -765,6 +764,15 @@ void PlayMode::update(float elapsed) {
 			letter_counter = total_letters;
 		} else if(space.downs) {
 			hide_current_notification();
+			if(notif_pq.size() && !notification_active) {
+				auto top = notif_pq.top();
+				float t = -top.first;
+				std::string filename = top.second;
+				if(t <= total_elapsed && (!gameOver || filename.find("game_over.txt") != filename.npos)) {
+					notif_pq.pop();
+					display_notification(filename);
+				}
+			}
 		} else {
 			current_elapsed += elapsed;
 			if(current_elapsed >= max_elapsed) {
