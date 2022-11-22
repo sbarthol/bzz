@@ -134,6 +134,7 @@ struct PlayMode : Mode {
 	bool first_time_sick = false;
 	bool first_time_950_dollars = false;
 	bool first_time_alt_view = false;
+	bool alt_camera_bought = false;
 
 	Scene::Transform *first_cricket; 
 	std::vector<Cricket> Crickets;
@@ -180,7 +181,10 @@ struct PlayMode : Mode {
 		enum call_back {
 			BUY_FOOD = 0,
 			SELL_MATURE = 1,
-			BUY_EGG = 2
+			BUY_EGG = 2,
+			REMOVE_DEAD = 3,
+			BUY_CAMERA = 4,
+			BUY_STEROIDS = 5
 		};
 		call_back trigger_event;
 

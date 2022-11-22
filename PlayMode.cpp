@@ -271,6 +271,7 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 	if (scene.cameras.size() != 2) throw std::runtime_error("Expecting scene to have exactly two cameras, but it has " + std::to_string(scene.cameras.size()));
 	main_camera = &scene.cameras.front();
 	alt_camera = &scene.cameras.back();
+	camera_body_transform->scale = glm::vec3(0.f);
 
 	if(alt_camera->transform->position.z < main_camera->transform->position.z) {
 		std::swap(main_camera, alt_camera);
@@ -418,9 +419,8 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 	GL_ERRORS();
 
 	// set up buttons
-	buttons.emplace_back(this, glm::vec2(-0.9f, 0.5f), "../scenes/strawberry.png", Button_UI::BUY_FOOD);
-	buttons.emplace_back(this, glm::vec2(-0.9f + 0.2f, 0.5f), "../scenes/egg.png", Button_UI::BUY_EGG);
-	buttons.emplace_back(this, glm::vec2(-0.9f + 0.4f, 0.5f), "../scenes/dollars.png", Button_UI::SELL_MATURE);
+	buttons.emplace_back(this, "../scenes/strawberry.png", Button_UI::BUY_FOOD);
+	buttons.emplace_back(this, "../scenes/egg.png", Button_UI::BUY_EGG);
 
 	// load some png textures
 	int ret;
@@ -472,8 +472,12 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size_
 			down.pressed = true;
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_c) {
-			switch_camera.pressed = true;
-			return true;
+			if(alt_camera_bought) {
+				switch_camera.pressed = true;
+				return true;
+			} else {
+				return false;
+			}
 		} else if (evt.key.keysym.sym == SDLK_SPACE) {
 			space.pressed = true;
 			return true;
@@ -492,25 +496,38 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size_
 			down.pressed = false;
 			return true;
 		} else if (evt.key.keysym.sym == SDLK_c) {
-			switch_camera.downs += 1;
-			switch_camera.pressed = false;
-			return true;
+			if(alt_camera_bought) {
+				switch_camera.downs += 1;
+				switch_camera.pressed = false;
+				return true;
+			} else {
+				return false;
+			}
 		} else if (evt.key.keysym.sym == SDLK_SPACE) {
 			space.downs += 1;
 			down.pressed = false;
 			return true;
 		}
 	} else if (evt.type == SDL_MOUSEBUTTONDOWN) {
-		if(!notification_active) {
+			if(!notification_active) {
+				int x, y;
+				SDL_GetMouseState(&x, &y);
+				for (auto &button: buttons) {
+					button.set_pressed(x, y, window_size);
+				}
+				return true;
+			} else {
+				return false;
+			}
+	} else if (evt.type == SDL_MOUSEBUTTONUP) {
 			int x, y;
 			SDL_GetMouseState(&x, &y);
 			for (auto &button: buttons) {
-				button.interact(x, y, window_size);
+				if(button.pressed) {
+					button.interact(x, y, window_size);
+				}
 			}
 			return true;
-		} else {
-			return false;
-		}
 	} 
 
 	return false;
@@ -530,6 +547,17 @@ void PlayMode::update(float elapsed) {
 	}
 
 	if(!notification_active) {
+
+		// button actions
+		{
+			for(PlayMode::Button_UI &button: buttons) {
+				if(button.clicked) {
+					invoke_callback(button.trigger_event);
+					button.pressed = false;
+					button.clicked = false;
+				}
+			}
+		}
 
 		// update food visuals
 	{
@@ -563,6 +591,7 @@ void PlayMode::update(float elapsed) {
 			} else if (cricket.is_mature()) {
 				if(!first_time_matured) {
 					first_time_matured = true;
+					buttons.emplace_back(this, "../scenes/dollars.png", Button_UI::SELL_MATURE);
 					schedule_notification(data_path("../text/first_time_matured.txt"), 1);
 				}
 				mature_cricket(cricket);
@@ -655,6 +684,7 @@ void PlayMode::update(float elapsed) {
 			cricket.is_healthy = !is_sick();
 			if(cricket.is_dead()) {
 				if(!first_time_sick) {
+					buttons.emplace_back(this, "../scenes/skull.png", Button_UI::REMOVE_DEAD);
 					first_time_sick = true;
 					schedule_notification(data_path("../text/first_time_sick.txt"), 1.5f);
 					schedule_notification(data_path("../text/first_time_sick2.txt"), 1.5001f);
@@ -757,7 +787,11 @@ void PlayMode::update(float elapsed) {
 		Sound::listener.set_position_right(frame_at, frame_right, 1.0f / 60.0f);
 	}
 
-	
+		// update button pos
+		for(int i=0;i<buttons.size();i++){
+			buttons[i].anchor = glm::vec2(-0.9f + (i%2) * 0.2f, 0.5f - ((int)i/2) * 0.35f);
+		}
+
 	} else {
 
 		if(space.downs && letter_counter < total_letters) {
@@ -851,6 +885,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 				popup = popups.erase(popup);
 			}
 		}
+
 
 		for (auto &button : buttons) {
 			button.draw(drawable_size);
@@ -972,6 +1007,21 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 			if (clickSuccess)
 				Sound::play(*cash_sample, 1.0f, 0.0f);
 			break;
+		case Button_UI::REMOVE_DEAD:	
+			clickSuccess = remove_dead_crickets();
+			break;
+		case Button_UI::BUY_CAMERA:	
+			clickSuccess = totalMoney >= 500;
+			if(clickSuccess) {
+				Sound::play(*cash_sample, 1.0f, 0.0f);
+				camera_body_transform->scale = glm::vec3(1.f);
+				totalMoney -= 500;
+				alt_camera_bought = true;
+				schedule_notification(data_path("../text/alt_camera_bought.txt"), 1.f);
+			}
+			break;
+		case Button_UI::BUY_STEROIDS:	
+			break;
 		default:
 			throw std::runtime_error("unrecognized callback\n");
 	}
@@ -994,7 +1044,7 @@ bool buy(T quantity, float price, T &total_quantity, float &total_money) {
 
 bool PlayMode::buy_food() {
 	std::cout << "buy_food" << std::endl;
-	if(!first_time_food) {
+	if(!first_time_food && totalMoney >= foodPrice) {
 		first_time_food = true;
 		schedule_notification(data_path("../text/first_time_food.txt"), 1.5);
 	}
@@ -1006,15 +1056,16 @@ bool PlayMode::buy_food() {
 
 bool PlayMode::buy_eggs() {
 	std::cout << "buy_eggs" << std::endl;
-	if(!first_time_eggs) {
-		first_time_eggs = true;
-		schedule_notification(data_path("../text/first_time_eggs.txt"), 1.5);
-	}
+	
 	const size_t unitEggs = 19;
 	const float unitPrice = eggPrice;
 	bool success = false;
 
 	if (totalMoney >= unitPrice) {
+		if(!first_time_eggs) {
+			first_time_eggs = true;
+			schedule_notification(data_path("../text/first_time_eggs.txt"), 1.5);
+		}
 		for (size_t i = 0; i < unitEggs; i++)
 			spawn_cricket();
 		totalMoney -= unitPrice;
@@ -1069,6 +1120,8 @@ bool PlayMode::sell_mature() {
 
 	if(totalMoney >= 950 && !first_time_950_dollars) {
 		first_time_950_dollars = true;
+		buttons.emplace_back(this, "../scenes/camera.png", Button_UI::BUY_CAMERA);
+		buttons.emplace_back(this, "../scenes/syringe.png", Button_UI::BUY_STEROIDS);
 		schedule_notification(data_path("../text/first_time_950_dollars.txt"), 1.5);
 	}	
 
@@ -1087,8 +1140,18 @@ bool PlayMode::sell_mature() {
 
 	if (success) {
 		// glm::u8vec4(0x00, 0x00, 0x00, 0x00)
+
+		glm::vec2 anchor;
+		for(PlayMode::Button_UI button:buttons) {
+			if(button.trigger_event == Button_UI::SELL_MATURE) {
+				anchor = button.anchor;
+			}
+		}
+
+		anchor.x = 128.f + 1280.f * (anchor.x + 1.f) / 2.f;
+		anchor.y = 720.f * (1.f - (anchor.y + 1.f) / 2.f) - 64.f;
 		
-		popups.emplace_back(glm::vec2(235,345), "+$" + std::to_string(int(profit)), glm::u8vec4(0x38, 0x66, 0x41, 0x00), 0.75f);
+		popups.emplace_back(anchor, "+$" + std::to_string(int(profit)), glm::u8vec4(0x38, 0x66, 0x41, 0x00), 0.75f);
 	}
 
 	return success;
@@ -1155,35 +1218,49 @@ void Popup_UI::draw(DrawLines &lines) {
 	anchor.x += 0.5;
 }
 
-PlayMode::Button_UI::Button_UI(PlayMode* _game, glm::vec2 _anchor, std::string icon_png, call_back _trigger_event)	:
-    game(_game), anchor(_anchor), trigger_event(_trigger_event) {
+PlayMode::Button_UI::Button_UI(PlayMode* _game, std::string icon_png, call_back _trigger_event)	:
+    game(_game), trigger_event(_trigger_event) {
 	
 	int ret;
-	ret = PlayMode::png_to_gl_texture(&clickedTex, data_path("../scenes/button_clicked.png"));
+	ret = PlayMode::png_to_gl_texture(&pressedTex, data_path("../scenes/button_clicked.png"));
 	assert(ret == 0);
-	ret = PlayMode::png_to_gl_texture(&unclickedTex, data_path("../scenes/button_unclicked.png"));
+	ret = PlayMode::png_to_gl_texture(&unpressedTex, data_path("../scenes/button_unclicked.png"));
 	assert(ret == 0);
 	ret = PlayMode::png_to_gl_texture(&icon, data_path(icon_png));
 	assert(ret == 0);
 
-	active = false;
+	pressed = false;
 	clicked = false;
 
 	GL_ERRORS();
 }
 
 void PlayMode::Button_UI::draw(glm::uvec2 const &drawable_size) {
-	auto cur_time = std::chrono::high_resolution_clock::now();
-	if (clicked && cur_time > reset_time) {
-		clicked = false;
-	}
-
-	if (clicked) PlayMode::draw_textured_quad(&clickedTex, anchor.x, anchor.y, drawable_size);
-	else PlayMode::draw_textured_quad(&unclickedTex, anchor.x, anchor.y, drawable_size);
+	if (pressed) PlayMode::draw_textured_quad(&pressedTex, anchor.x, anchor.y, drawable_size);
+	else PlayMode::draw_textured_quad(&unpressedTex, anchor.x, anchor.y, drawable_size);
 
 	PlayMode::draw_textured_quad(&icon, anchor.x, anchor.y, drawable_size);
 
 	GL_ERRORS();
+}
+
+void PlayMode::Button_UI::set_pressed(int mouse_x, int mouse_y, glm::vec2 drawable_size) {
+	// The anchor is set to the bottom-left corner of the image
+	// both x and y components of anchor are in range [-1, 1]
+
+	// mouse x and y are in pixel space: top-left corner is (0, 0),
+	// bottom-right corner is (drawable_size.x, drawable_size.y)
+	int x0 = (int) ((anchor.x + 1.f) / 2.f * drawable_size.x);
+	int y1 = (int) ((1 - (anchor.y + 1.f) / 2.f) * drawable_size.y);
+
+	int x1 = x0 + pressedTex.w / 2;
+	int y0 = y1 - pressedTex.h / 2;
+
+	if (mouse_x >= x0 && mouse_x <= x1 &&
+		mouse_y >= y0 && mouse_y <= y1) {
+		
+		pressed = true;
+	}
 }
 
 void PlayMode::Button_UI::interact(int mouse_x, int mouse_y, glm::vec2 drawable_size) {
@@ -1195,16 +1272,13 @@ void PlayMode::Button_UI::interact(int mouse_x, int mouse_y, glm::vec2 drawable_
 	int x0 = (int) ((anchor.x + 1.f) / 2.f * drawable_size.x);
 	int y1 = (int) ((1 - (anchor.y + 1.f) / 2.f) * drawable_size.y);
 
-	int x1 = x0 + clickedTex.w / 2;
-	int y0 = y1 - clickedTex.h / 2;
+	int x1 = x0 + pressedTex.w / 2;
+	int y0 = y1 - pressedTex.h / 2;
 
 	if (mouse_x >= x0 && mouse_x <= x1 &&
 		mouse_y >= y0 && mouse_y <= y1) {
 
-		game->invoke_callback(trigger_event);
-		
 		clicked = true;
-		reset_time = std::chrono::high_resolution_clock::now() + std::chrono::milliseconds(100);
 	}
 }
 
@@ -1445,7 +1519,6 @@ int PlayMode::png_to_gl_texture(PlayMode::texture * tex, std::string filename) {
 		if(!file) {
 			CLEANUP(2);
 		}
-		printf("sometjign happened\n");
 	#endif
 
 
