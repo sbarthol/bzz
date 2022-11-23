@@ -439,6 +439,19 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 		display_notification(data_path("../text/intro.txt"));
 	}, 2);
 
+	schedule_lambda([this](){
+		display_notification(data_path("../text/cricket_fact_1.txt"));
+	}, 120);
+	schedule_lambda([this](){
+		display_notification(data_path("../text/cricket_fact_2.txt"));
+	}, 180);
+	schedule_lambda([this](){
+		display_notification(data_path("../text/cricket_fact_3.txt"));
+	}, 240);
+	schedule_lambda([this](){
+		display_notification(data_path("../text/cricket_fact_4.txt"));
+	}, 300);
+
 	// sampler
 	GLuint sampler{0};
   glGenSamplers(1, &sampler);
