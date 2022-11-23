@@ -435,7 +435,9 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
     abort();
   }
 
-	schedule_notification(data_path("../text/intro.txt"), 1.5);
+	schedule_lambda([this](){
+		display_notification(data_path("../text/intro.txt"));
+	}, 2);
 
 	// sampler
 	GLuint sampler{0};
@@ -536,15 +538,20 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size_
 void PlayMode::update(float elapsed) {
 	total_elapsed += elapsed;
 
-	if(notif_pq.size() && !notification_active) {
-		auto top = notif_pq.top();
+	if(lambda_pq.size() && !notification_active) {
+		auto top = lambda_pq.top();
 		float t = -top.first;
-		std::string filename = top.second;
-		if(t <= total_elapsed && (!gameOver || filename.find("game_over.txt") != filename.npos)) {
-			notif_pq.pop();
-			display_notification(filename);
+		int idx = top.second;
+		if(t <= total_elapsed) {
+			lambda_pq.pop();
+			all_lambdas[idx]();
 		}
 	}
+
+	// update button pos
+		for(int i=0;i<buttons.size();i++){
+			buttons[i].anchor = glm::vec2(-0.9f + (i%2) * 0.2f, 0.5f - ((int)i/2) * 0.35f);
+		}
 
 	if(!notification_active) {
 
@@ -591,15 +598,22 @@ void PlayMode::update(float elapsed) {
 			} else if (cricket.is_mature()) {
 				if(!first_time_matured) {
 					first_time_matured = true;
-					buttons.emplace_back(this, "../scenes/dollars.png", Button_UI::SELL_MATURE);
-					schedule_notification(data_path("../text/first_time_matured.txt"), 1);
+					
+					schedule_lambda([this](){
+						buttons.emplace_back(this, "../scenes/dollars.png", Button_UI::SELL_MATURE);
+						display_notification(data_path("../text/first_time_matured.txt"));
+					}, 1.5);
 				}
 				mature_cricket(cricket);
 			} else if (cricket.is_baby()) {
 				if(!first_time_babies) {
 					first_time_babies = true;
-					schedule_notification(data_path("../text/first_time_babies.txt"), 1.000f);
-					schedule_notification(data_path("../text/first_time_babies2.txt"), 1.001f);
+					schedule_lambda([this](){
+						display_notification(data_path("../text/first_time_babies.txt"));
+					}, 1.500f);
+					schedule_lambda([this](){
+						display_notification(data_path("../text/first_time_babies2.txt"));
+					}, 1.501f);
 				}
 				hatch_cricket(cricket);
 			}
@@ -684,10 +698,15 @@ void PlayMode::update(float elapsed) {
 			cricket.is_healthy = !is_sick();
 			if(cricket.is_dead()) {
 				if(!first_time_sick) {
-					buttons.emplace_back(this, "../scenes/skull.png", Button_UI::REMOVE_DEAD);
+					
 					first_time_sick = true;
-					schedule_notification(data_path("../text/first_time_sick.txt"), 1.5f);
-					schedule_notification(data_path("../text/first_time_sick2.txt"), 1.5001f);
+					schedule_lambda([this](){
+						buttons.emplace_back(this, "../scenes/skull.png", Button_UI::REMOVE_DEAD);
+						display_notification(data_path("../text/first_time_sick.txt"));
+					}, 1.5f);
+					schedule_lambda([this](){
+						display_notification(data_path("../text/first_time_sick2.txt"));
+					}, 1.5001f);
 				}
 				kill_cricket(cricket);
 			}
@@ -726,7 +745,9 @@ void PlayMode::update(float elapsed) {
 				if(cricket.is_dead()) {
 					if(!first_time_starved) {
 						first_time_starved = true;
-						schedule_notification(data_path("../text/first_time_starved.txt"), 0);
+						schedule_lambda([this](){
+							display_notification(data_path("../text/first_time_starved.txt"));
+						}, 1);
 					}
 					kill_cricket(cricket);
 				}
@@ -740,7 +761,9 @@ void PlayMode::update(float elapsed) {
 		alt_view = !alt_view;
 		if(!first_time_alt_view) {
 			first_time_alt_view = true;
-			schedule_notification(data_path("../text/first_time_alt_view.txt"), 0);
+			schedule_lambda([this](){
+				display_notification(data_path("../text/first_time_alt_view.txt"));
+			}, 1.5f);
 		}
 		camera_body_transform->scale = glm::vec3(alt_view ? 0.f : 1.f);
 	}
@@ -787,24 +810,19 @@ void PlayMode::update(float elapsed) {
 		Sound::listener.set_position_right(frame_at, frame_right, 1.0f / 60.0f);
 	}
 
-		// update button pos
-		for(int i=0;i<buttons.size();i++){
-			buttons[i].anchor = glm::vec2(-0.9f + (i%2) * 0.2f, 0.5f - ((int)i/2) * 0.35f);
-		}
-
 	} else {
 
 		if(space.downs && letter_counter < total_letters) {
 			letter_counter = total_letters;
 		} else if(space.downs) {
 			hide_current_notification();
-			if(notif_pq.size() && !notification_active) {
-				auto top = notif_pq.top();
+			if(lambda_pq.size() && !notification_active) {
+				auto top = lambda_pq.top();
 				float t = -top.first;
-				std::string filename = top.second;
-				if(t <= total_elapsed && (!gameOver || filename.find("game_over.txt") != filename.npos)) {
-					notif_pq.pop();
-					display_notification(filename);
+				int idx = top.second;
+				if(t <= total_elapsed) {
+					lambda_pq.pop();
+					all_lambdas[idx]();
 				}
 			}
 		} else {
@@ -818,7 +836,9 @@ void PlayMode::update(float elapsed) {
 
 	if(numDeadCrickets == Crickets.size() && totalMoney < eggPrice && !gameOver) {
 		gameOver = true;
-		schedule_notification(data_path("../text/game_over.txt"), 1);
+		schedule_lambda([this](){
+			display_notification(data_path("../text/game_over.txt"));
+		}, 2.f);
 	}
 
 	//reset button press counters:
@@ -907,6 +927,10 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 }
 
 void PlayMode::display_notification(std::string filename) {
+	if((gameOver && filename.find("game_over.txt") == filename.npos)) {
+		return;
+	}
+
 	std:: string text = load_text_from_file(filename);
 
 	notification_active = true;
@@ -936,8 +960,10 @@ void PlayMode::display_notification(std::string filename) {
 	}
 }
 
-void PlayMode::schedule_notification(std::string filename, float in_time) {
-	notif_pq.push(make_pair(-total_elapsed - in_time, filename));
+void PlayMode::schedule_lambda(std::function<void(void)> f, float in_time) {
+	int idx = lambda_counter++;
+	all_lambdas[idx] = f;
+	lambda_pq.push(std::make_pair(-total_elapsed - in_time, idx));
 }
 
 void PlayMode::hide_current_notification() {
@@ -1017,7 +1043,19 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 				camera_body_transform->scale = glm::vec3(1.f);
 				totalMoney -= 500;
 				alt_camera_bought = true;
-				schedule_notification(data_path("../text/alt_camera_bought.txt"), 1.f);
+				schedule_lambda([this](){
+					auto it = buttons.begin();
+					while(it != buttons.end()) {
+						PlayMode::Button_UI b = *it;
+						if ( b.trigger_event == PlayMode::Button_UI::BUY_CAMERA ) {
+							it = buttons.erase(it);
+						} else {
+							it++;
+						}
+					}
+
+					display_notification(data_path("../text/alt_camera_bought.txt"));
+				}, 1.f);
 			}
 			break;
 		case Button_UI::BUY_STEROIDS:	
@@ -1046,7 +1084,9 @@ bool PlayMode::buy_food() {
 	std::cout << "buy_food" << std::endl;
 	if(!first_time_food && totalMoney >= foodPrice) {
 		first_time_food = true;
-		schedule_notification(data_path("../text/first_time_food.txt"), 1.5);
+		schedule_lambda([this](){
+			display_notification(data_path("../text/first_time_food.txt"));
+		}, 1.5);
 	}
 	const size_t unitFood = 10;
 	const float unitPrice = foodPrice;
@@ -1064,7 +1104,9 @@ bool PlayMode::buy_eggs() {
 	if (totalMoney >= unitPrice) {
 		if(!first_time_eggs) {
 			first_time_eggs = true;
-			schedule_notification(data_path("../text/first_time_eggs.txt"), 1.5);
+			schedule_lambda([this](){
+				display_notification(data_path("../text/first_time_eggs.txt"));
+			}, 1.5);
 		}
 		for (size_t i = 0; i < unitEggs; i++)
 			spawn_cricket();
@@ -1120,9 +1162,12 @@ bool PlayMode::sell_mature() {
 
 	if(totalMoney >= 950 && !first_time_950_dollars) {
 		first_time_950_dollars = true;
-		buttons.emplace_back(this, "../scenes/camera.png", Button_UI::BUY_CAMERA);
-		buttons.emplace_back(this, "../scenes/syringe.png", Button_UI::BUY_STEROIDS);
-		schedule_notification(data_path("../text/first_time_950_dollars.txt"), 1.5);
+		
+		schedule_lambda([this](){
+			buttons.emplace_back(this, "../scenes/camera.png", Button_UI::BUY_CAMERA);
+			buttons.emplace_back(this, "../scenes/syringe.png", Button_UI::BUY_STEROIDS);
+			display_notification(data_path("../text/first_time_950_dollars.txt"));
+		}, 2);
 	}	
 
 	numMatureCrickets = 0;

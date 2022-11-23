@@ -15,6 +15,7 @@
 #include <hb.h>
 #include <hb-ft.h>
 #include <queue>
+#include <functional>
 
 
 struct Popup_UI {
@@ -104,9 +105,11 @@ struct PlayMode : Mode {
 	void draw_filled_rect(glm::vec2 lower_left, glm::vec2 upper_right, glm::vec4 color);
 	
 	// Notification
-	std::priority_queue<std::pair<float, std::string>> notif_pq;
+	int lambda_counter = 0;
+	std::function<void(void)> all_lambdas[30];
+	std::priority_queue<std::pair<float, int>> lambda_pq;
 	void display_notification(std::string filename);
-	void schedule_notification(std::string filename, float in_time);
+	void schedule_lambda(std::function<void(void)> f, float in_time);
 	void hide_current_notification();
 	bool notification_active = false;
 	std::vector<std::string> notification_text;
