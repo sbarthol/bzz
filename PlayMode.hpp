@@ -147,10 +147,13 @@ struct PlayMode : Mode {
 	size_t numBabyCrickets = 0;
 	size_t numMatureCrickets = 0;
 	size_t numDeadCrickets = 0;
-	float totalMoney = 220.f;
+	size_t cageCapacity = 50; 
+	size_t unitEggs = 19;
+	float totalMoney = 250.f;
 	float totalFood = 200.f;
 	float eggPrice = 200.f;
-	float foodPrice = 200.f;
+	float foodPrice = 100.f;
+	float cricketPrice = 50.f;
 	bool gameOver = false;
 
 	// PNG
@@ -187,7 +190,8 @@ struct PlayMode : Mode {
 			BUY_EGG = 2,
 			REMOVE_DEAD = 3,
 			BUY_CAMERA = 4,
-			BUY_STEROIDS = 5
+			BUY_STEROIDS = 5,
+			UPGRADE_CAGE = 6
 		};
 		call_back trigger_event;
 
@@ -201,8 +205,11 @@ struct PlayMode : Mode {
 	bool buy_food();
 	bool buy_eggs();
 	bool sell_mature();
+	bool upgrade_cage();
 	bool remove_dead_crickets();
-
+	bool is_at_capacity() {
+		return (numBabyCrickets + numMatureCrickets+ numDeadCrickets + numEggs) >= cageCapacity;
+	}
 	std::vector<Popup_UI> popups;
 	std::vector<Button_UI> buttons;
 

@@ -421,6 +421,8 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 	// set up buttons
 	buttons.emplace_back(this, "../scenes/strawberry.png", Button_UI::BUY_FOOD);
 	buttons.emplace_back(this, "../scenes/egg.png", Button_UI::BUY_EGG);
+	/*TODO: GET IMAGE FOR INCREASE CAPACITY BUTTON*/
+	// buttons.emplace_back(this, "../scenes/egg.png", Button_UI::UPGRADE_CAGE);
 
 	// load some png textures
 	int ret;
@@ -550,6 +552,14 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size_
 
 void PlayMode::update(float elapsed) {
 	total_elapsed += elapsed;
+
+	//Fluctuating cricket prices
+	{
+		if ((uint64_t)(total_elapsed)%5 == 0){
+			float adjustment = std::rand() % 100;
+			cricketPrice = 10 + adjustment;
+		}
+	}
 
 	if(lambda_pq.size() && !notification_active) {
 		auto top = lambda_pq.top();
@@ -893,7 +903,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 	// Draw stats
 	{
-		draw_stats(drawable_size, -1.f, -0.7f);
+		draw_stats(drawable_size, -1.2f, -0.7f);
 	}
 
 	{ //use DrawLines to overlay some text:
@@ -1049,6 +1059,11 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 		case Button_UI::REMOVE_DEAD:	
 			clickSuccess = remove_dead_crickets();
 			break;
+	
+		case Button_UI::UPGRADE_CAGE:	
+			clickSuccess = upgrade_cage();
+			break;
+	
 		case Button_UI::BUY_CAMERA:	
 			clickSuccess = totalMoney >= 500;
 			if(clickSuccess) {
@@ -1107,14 +1122,28 @@ bool PlayMode::buy_food() {
 	return buy<float>(unitFood, unitPrice, totalFood, totalMoney);
 }
 
-bool PlayMode::buy_eggs() {
-	std::cout << "buy_eggs" << std::endl;
+bool PlayMode::upgrade_cage() {
+	std::cout << "increasing cage size" << std::endl;
 	
-	const size_t unitEggs = 19;
-	const float unitPrice = eggPrice;
+	const float unitPrice = cageCapacity*2;
 	bool success = false;
 
 	if (totalMoney >= unitPrice) {
+		cageCapacity *= 2;
+		totalMoney -= unitPrice;
+		success = true;
+	}
+	return success;
+
+}
+
+bool PlayMode::buy_eggs() {
+	std::cout << "buy_eggs: " << numDeadCrickets + numEggs + numMatureCrickets + numBabyCrickets<< std::endl;
+	
+	const float unitPrice = eggPrice;
+	bool success = false;
+
+	if (totalMoney >= unitPrice && (!is_at_capacity())) {
 		if(!first_time_eggs) {
 			first_time_eggs = true;
 			schedule_lambda([this](){
@@ -1148,8 +1177,6 @@ void PlayMode::hatch_cricket(Cricket &cricket) {
 
 bool PlayMode::sell_mature() {
 	std::cout << "sell_mature" << std::endl;
-	const float price = 50;
-
 	std::unordered_set<std::string> mature_cricket_names;
 	std::vector<Cricket> mature_crickets;
 	std::vector<Cricket> non_mature_crickets;
@@ -1170,7 +1197,7 @@ bool PlayMode::sell_mature() {
 		success = true;
 	}
 	
-	float profit = numMatureCrickets * price;
+	float profit = numMatureCrickets * cricketPrice;
 	totalMoney += profit;
 
 	if(totalMoney >= 950 && !first_time_950_dollars) {
@@ -1387,11 +1414,21 @@ void PlayMode::draw_stats(glm::uvec2 const &drawable_size, float x, float y) {
 	GL_ERRORS();
 
 	std:: string sep = "      ";
+	
 	std::string s = "Food: " + std::to_string((int)totalFood) + sep + "Money: " + std::to_string((int)totalMoney) + sep + "Eggs:" + std::to_string(numEggs) + sep + "Nymphs: " + std::to_string(numBabyCrickets) + sep + "Adults: " + std::to_string(numMatureCrickets);
+	s += sep + "Capacity: "  + std::to_string(numEggs+ numBabyCrickets + numMatureCrickets + numDeadCrickets) + "/" + std::to_string(cageCapacity);
+
+	std::string s2; 
+
 	if(numDeadCrickets > 0) {
-		s += sep + "Dead: " + std::to_string(numDeadCrickets);
+		s2 += sep + "Dead: " + std::to_string(numDeadCrickets);
 	}
+	if(numMatureCrickets > 0) {
+		s2 += sep + "Selling Price: " +  std::to_string((uint64_t)cricketPrice);
+	}
+	
 	draw_text_line(s,drawable_size,x,y);
+	draw_text_line(s2,drawable_size,x,y-.1f);
 
 	glDisable(GL_BLEND);
 	glUseProgram(0);
