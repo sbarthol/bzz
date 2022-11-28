@@ -60,6 +60,8 @@ struct PlayMode : Mode {
 		float matureAge;
 		float hatchAge;
 		bool is_healthy = true;
+		bool is_juicy = false;
+		bool is_attacking = false;
 
 		float age = 0.f;
 
@@ -135,8 +137,11 @@ struct PlayMode : Mode {
 	bool first_time_matured = false; 
 	bool first_time_starved = false;
 	bool first_time_sick = false;
-	bool first_time_950_dollars = false;
+	bool first_time_500_dollars = false;
 	bool first_time_alt_view = false;
+	bool first_time_steroids = false;
+	bool first_time_too_big = false;
+	bool first_time_is_attacking = false;
 	bool alt_camera_bought = false;
 
 	Scene::Transform *first_cricket; 

@@ -443,16 +443,16 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 
 	schedule_lambda([this](){
 		display_notification(data_path("../text/cricket_fact_1.txt"));
-	}, 120);
-	schedule_lambda([this](){
-		display_notification(data_path("../text/cricket_fact_2.txt"));
 	}, 180);
 	schedule_lambda([this](){
-		display_notification(data_path("../text/cricket_fact_3.txt"));
+		display_notification(data_path("../text/cricket_fact_2.txt"));
 	}, 240);
 	schedule_lambda([this](){
-		display_notification(data_path("../text/cricket_fact_4.txt"));
+		display_notification(data_path("../text/cricket_fact_3.txt"));
 	}, 300);
+	schedule_lambda([this](){
+		display_notification(data_path("../text/cricket_fact_4.txt"));
+	}, 360);
 
 	// sampler
 	GLuint sampler{0};
@@ -467,6 +467,40 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 PlayMode::~PlayMode() {
 	//FT_Done_Face(ft_face);
 	//FT_Done_FreeType(ft_library);
+}
+
+// http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-17-quaternions/#how-do-i-find-the-rotation-between-2-vectors-
+glm::quat rotationBetweenVectors(glm::vec3 start, glm::vec3 dest){
+	start = glm::normalize(start);
+	dest = glm::normalize(dest);
+
+	float cosTheta = dot(start, dest);
+	glm::vec3 rotationAxis;
+
+	if (cosTheta < -1 + 0.001f){
+		// special case when vectors in opposite directions:
+		// there is no "ideal" rotation axis
+		// So guess one; any will do as long as it's perpendicular to start
+		rotationAxis = glm::cross(glm::vec3(0.0f, 0.0f, 1.0f), start);
+		if (glm::length(rotationAxis) < 0.01 ) // bad luck, they were parallel, try again!
+			rotationAxis = glm::cross(glm::vec3(1.0f, 0.0f, 0.0f), start);
+
+		rotationAxis = normalize(rotationAxis);
+		return glm::angleAxis(glm::radians(180.0f), rotationAxis);
+	}
+
+	rotationAxis = cross(start, dest);
+
+	float s = sqrt( (1+cosTheta)*2 );
+	float invs = 1 / s;
+
+	return glm::quat(
+		s * 0.5f, 
+		rotationAxis.x * invs,
+		rotationAxis.y * invs,
+		rotationAxis.z * invs
+	);
+
 }
 
 bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size_) {
@@ -640,17 +674,37 @@ void PlayMode::update(float elapsed) {
 				}
 				hatch_cricket(cricket);
 			}
+
+			if(cricket.is_juicy && cricket.is_mature()) {
+				cricket.transform->scale = glm::vec3(std::min(cricket.age / cricket.matureAge, 8.f));
+				if(cricket.transform->scale.x >= 3.f && !first_time_too_big) {
+					first_time_too_big = true;
+					schedule_lambda([this](){
+						display_notification(data_path("../text/first_time_too_big.txt"));
+					}, 1.500f);
+				}
+				if(cricket.transform->scale.x >= 6.f) {
+					cricket.is_attacking = true;
+					if(!first_time_is_attacking) {
+						first_time_is_attacking = true;
+						schedule_lambda([this](){
+							display_notification(data_path("../text/first_time_is_attacking.txt"));
+						}, 1.500f);
+					}
+				}
+			}
 		}
 	}
 
 	// Move some crickets randomly
 	{
-		const float JumpDistance = 0.1f;
+		
 		for(Cricket &cricket: Crickets) {
 			if(cricket.is_dead() || cricket.is_egg()) {
 				continue;
 			}
-			if(std::rand() % 40 == 0) {
+			if(std::rand() % 40 == 0 && !cricket.is_attacking) {
+				const float JumpDistance = 0.1f;
 
 				glm::quat quat = glm::angleAxis(glm::radians(get_rng_range(-20.f,20.f)), glm::vec3(0.0,0.0,1.0));
 				cricket.transform->rotation = glm::normalize(cricket.transform->rotation * quat);
@@ -680,6 +734,16 @@ void PlayMode::update(float elapsed) {
 					pos.x = glm::clamp(pos.x, bedding_min.x + eps, bedding_max.x - eps);
 					pos.y = glm::clamp(pos.y, bedding_min.y + eps, bedding_max.y - eps);
 				}
+			} 
+			if (std::rand() % 40 == 0 && cricket.is_attacking) {
+				const float JumpDistance = 0.5f;
+				glm::vec3 my_dir = main_camera->transform->position - cricket.transform->position;
+				my_dir.z = 0.f;
+				glm::quat quat = rotationBetweenVectors(glm::vec3(0.f, 1.f, 0.f), my_dir) * glm::angleAxis(glm::radians(get_rng_range(-20.f,20.f)), glm::vec3(0.0,0.0,1.0));
+				cricket.transform->rotation = glm::normalize(quat);
+				glm::vec3 dir = cricket.transform->rotation * glm::vec3(0.f, 1.f, 0.f) ;
+				dir = JumpDistance * glm::normalize(dir);
+				cricket.transform->position += dir;
 			}
 		}
 	}
@@ -1065,11 +1129,11 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 			break;
 	
 		case Button_UI::BUY_CAMERA:	
-			clickSuccess = totalMoney >= 500;
+			clickSuccess = totalMoney >= 400;
 			if(clickSuccess) {
 				Sound::play(*cash_sample, 1.0f, 0.0f);
 				camera_body_transform->scale = glm::vec3(1.f);
-				totalMoney -= 500;
+				totalMoney -= 400;
 				alt_camera_bought = true;
 				schedule_lambda([this](){
 					auto it = buttons.begin();
@@ -1087,6 +1151,23 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 			}
 			break;
 		case Button_UI::BUY_STEROIDS:	
+			clickSuccess = totalMoney >= 400 && numBabyCrickets + numMatureCrickets + numEggs > 0;
+			if(clickSuccess) {
+				Sound::play(*cash_sample, 1.0f, 0.0f);
+				totalMoney -= 400;
+				for(Cricket &cricket: Crickets) {
+					cricket.is_juicy = true;
+					cricket.hatchAge /= 2.f;
+					cricket.matureAge /= 2.f;
+					cricket.lifeSpan = 10000.f;
+				}
+				if(!first_time_steroids) {
+					schedule_lambda([this](){
+						display_notification(data_path("../text/first_time_steroids.txt"));
+					}, 1.f);
+				}
+				first_time_steroids = true;
+			}
 			break;
 		default:
 			throw std::runtime_error("unrecognized callback\n");
@@ -1116,7 +1197,7 @@ bool PlayMode::buy_food() {
 			display_notification(data_path("../text/first_time_food.txt"));
 		}, 1.5);
 	}
-	const size_t unitFood = 10;
+	const size_t unitFood = 200;
 	const float unitPrice = foodPrice;
 
 	return buy<float>(unitFood, unitPrice, totalFood, totalMoney);
@@ -1183,7 +1264,7 @@ bool PlayMode::sell_mature() {
 	bool success = false;
 
 	for(Cricket &cricket: Crickets) {
-		if(cricket.is_mature()) {
+		if(cricket.is_mature() && !cricket.is_attacking) {
 			mature_crickets.push_back(cricket);
 			mature_cricket_names.insert("Cricket_" + std::to_string(cricket.cricketID));
 		}else{
@@ -1191,26 +1272,24 @@ bool PlayMode::sell_mature() {
 		}
 	}
 
-	assert(mature_crickets.size() == numMatureCrickets);
-
-	if (numMatureCrickets > 0) {
+	if (mature_crickets.size() > 0) {
 		success = true;
 	}
 	
-	float profit = numMatureCrickets * cricketPrice;
+	float profit = mature_crickets.size() * cricketPrice;
 	totalMoney += profit;
 
-	if(totalMoney >= 950 && !first_time_950_dollars) {
-		first_time_950_dollars = true;
+	if(totalMoney >= 500 && !first_time_500_dollars) {
+		first_time_500_dollars = true;
 		
 		schedule_lambda([this](){
 			buttons.emplace_back(this, "../scenes/camera.png", Button_UI::BUY_CAMERA);
 			buttons.emplace_back(this, "../scenes/syringe.png", Button_UI::BUY_STEROIDS);
-			display_notification(data_path("../text/first_time_950_dollars.txt"));
+			display_notification(data_path("../text/first_time_500_dollars.txt"));
 		}, 2);
 	}	
 
-	numMatureCrickets = 0;
+	numMatureCrickets -= mature_crickets.size();
 	Crickets = std::move(non_mature_crickets);
 
 	auto it = scene.drawables.begin();
