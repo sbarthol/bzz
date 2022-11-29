@@ -858,6 +858,23 @@ void PlayMode::update(float elapsed) {
 		camera_body_transform->scale = glm::vec3(alt_view ? 0.f : 1.f);
 	}
 
+	// if(toggle_tutorial.pressed) {
+	// 	toggle = !toggle;
+	// 	printf("toggling\n");
+	// 	first_time_food = toggle; 
+	// 	first_time_babies = toggle; 
+	// 	first_time_eggs = toggle;
+	// 	first_time_matured = toggle; 
+	// 	first_time_starved = toggle;
+	// 	first_time_sick = toggle;
+	// 	first_time_500_dollars = toggle;
+	// 	first_time_alt_view = toggle;
+	// 	first_time_steroids = toggle;
+	// 	first_time_too_big = toggle;
+	// 	first_time_is_attacking = toggle;
+	// 	alt_camera_bought = toggle;
+	// }
+
 	//move camera:
 	if(!alt_view){
 
@@ -1212,10 +1229,22 @@ bool PlayMode::upgrade_cage() {
 	const float unitPrice = cageCapacity*2;
 	bool success = false;
 
+
 	if (totalMoney >= unitPrice) {
 		cageCapacity *= 2;
 		totalMoney -= unitPrice;
 		success = true;
+		auto it = scene.drawables.begin();
+		while(it != scene.drawables.end()) {
+			Scene::Drawable dr = *it;
+			if ( "Crate" == dr.transform->name) {
+				//double scale
+				printf("found crate\n");
+				dr.transform->scale[0] *= 1.25;
+				dr.transform->scale[1] *= 1.25;
+			}
+			it++;
+		}
 	}
 	return success;
 

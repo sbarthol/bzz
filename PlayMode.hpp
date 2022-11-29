@@ -49,7 +49,7 @@ struct PlayMode : Mode {
 	struct Button {
 		uint8_t downs = 0;
 		uint8_t pressed = 0;
-	} left, right, down, up, space, switch_camera;
+	} left, right, down, up, space, switch_camera, turn_off_tutorial;
 
 
 	struct Cricket {
@@ -131,6 +131,7 @@ struct PlayMode : Mode {
 	float max_elapsed = 0.02f;
 
 	// Tutorial
+	bool toggle = false;
 	bool first_time_food = false; 
 	bool first_time_babies = false; 
 	bool first_time_eggs = false;
@@ -153,7 +154,7 @@ struct PlayMode : Mode {
 	size_t numMatureCrickets = 0;
 	size_t numDeadCrickets = 0;
 	size_t cageCapacity = 50; 
-	size_t unitEggs = 19;
+	size_t unitEggs = 20;
 	float totalMoney = 250.f;
 	float totalFood = 200.f;
 	float eggPrice = 200.f;
@@ -213,7 +214,9 @@ struct PlayMode : Mode {
 	bool upgrade_cage();
 	bool remove_dead_crickets();
 	bool is_at_capacity() {
-		return (numBabyCrickets + numMatureCrickets+ numDeadCrickets + numEggs) >= cageCapacity;
+		size_t total = numBabyCrickets + numMatureCrickets+ numDeadCrickets + numEggs;
+		if (total < unitEggs) return false;
+		return (total + unitEggs) >= cageCapacity;
 	}
 	std::vector<Popup_UI> popups;
 	std::vector<Button_UI> buttons;
