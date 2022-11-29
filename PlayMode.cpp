@@ -1235,17 +1235,7 @@ bool PlayMode::upgrade_cage() {
 		cageCapacity *= 2;
 		totalMoney -= unitPrice;
 		success = true;
-		auto it = scene.drawables.begin();
-		while(it != scene.drawables.end()) {
-			Scene::Drawable dr = *it;
-			if ( "Crate" == dr.transform->name) {
-				//double scale
-				printf("found crate\n");
-				dr.transform->scale[0] *= 1.25;
-				dr.transform->scale[1] *= 1.25;
-			}
-			it++;
-		}
+		
 		bedding_transform->scale.x *= 1.1f;
 		bedding_transform->scale.y *= 1.1f;
 		bedding_min *= 1.1f;
