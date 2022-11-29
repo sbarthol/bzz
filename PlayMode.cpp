@@ -596,9 +596,14 @@ void PlayMode::update(float elapsed) {
 
 	//Fluctuating cricket prices
 	{
-		if ((uint64_t)(total_elapsed)%5 == 0){
-			float adjustment = std::rand() % 100;
-			cricketPrice = 10 + adjustment;
+		const float period = 3.f;
+		static float current_elapsed = 0.f;
+		current_elapsed += elapsed;
+		if(current_elapsed > period) {
+			current_elapsed = 0.f;
+			const int k = 5;
+			float adjustment = std::rand() % (2 * k + 1) - k;
+			cricketPrice = std::max(20.f, adjustment + cricketPrice);
 		}
 	}
 
