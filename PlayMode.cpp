@@ -212,8 +212,8 @@ void PlayMode::spawn_cricket() {
 	Scene::Transform *transform = &scene.transforms.back();
 	Cricket cricket = Cricket(Cricket::seq++, transform);
 
-	cricket.hatchAge = get_rng_range(6.f, 9.f);
-	cricket.matureAge = get_rng_range(20.f, 30.f);
+	cricket.hatchAge = get_rng_range(1.f, 2.f);
+	cricket.matureAge = get_rng_range(3.f, 4.f);
 	cricket.lifeSpan = get_rng_range(80.f, 110.f);
 	
 	Crickets.push_back(cricket);
@@ -688,8 +688,8 @@ void PlayMode::update(float elapsed) {
 			}
 
 			if(cricket.is_juicy && cricket.is_mature()) {
-				cricket.transform->scale = glm::vec3(std::min(cricket.age / cricket.matureAge, 8.f));
-				if(cricket.transform->scale.x >= 3.f && !first_time_too_big) {
+				cricket.transform->scale = glm::vec3(std::min(1.f + (cricket.age - cricket.juicyAge) * 0.15f, 8.f));
+				if(cricket.transform->scale.x >= 4.5f && !first_time_too_big) {
 					first_time_too_big = true;
 					schedule_lambda([this](){
 						display_notification(data_path("../text/first_time_too_big.txt"));
@@ -1207,6 +1207,7 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 				totalMoney -= 400;
 				for(Cricket &cricket: Crickets) {
 					cricket.is_juicy = true;
+					cricket.juicyAge = cricket.age;
 					cricket.hatchAge /= 2.f;
 					cricket.matureAge /= 2.f;
 					cricket.lifeSpan = 10000.f;
