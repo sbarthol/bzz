@@ -143,6 +143,7 @@ struct PlayMode : Mode {
 	bool first_time_steroids = false;
 	bool first_time_too_big = false;
 	bool first_time_is_attacking = false;
+	bool first_time_cage_too_small = false;
 	bool alt_camera_bought = false;
 
 	Scene::Transform *first_cricket; 

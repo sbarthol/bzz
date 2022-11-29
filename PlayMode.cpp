@@ -294,6 +294,8 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 		std::swap(bedding_min.y, bedding_max.y);
 	}
 
+	camera_body_transform->position.x = bedding_max.x + 1.16;
+
 	const char *VERTEX_SHADER = ""
         "#version 330\n"
         "in vec2 position;\n"
@@ -421,8 +423,7 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 	// set up buttons
 	buttons.emplace_back(this, "../scenes/strawberry.png", Button_UI::BUY_FOOD);
 	buttons.emplace_back(this, "../scenes/egg.png", Button_UI::BUY_EGG);
-	/*TODO: GET IMAGE FOR INCREASE CAPACITY BUTTON*/
-	// buttons.emplace_back(this, "../scenes/egg.png", Button_UI::UPGRADE_CAGE);
+	
 
 	// load some png textures
 	int ret;
@@ -1245,6 +1246,12 @@ bool PlayMode::upgrade_cage() {
 			}
 			it++;
 		}
+		bedding_transform->scale.x *= 1.1f;
+		bedding_transform->scale.y *= 1.1f;
+		bedding_min *= 1.1f;
+		bedding_max *= 1.1f;
+
+		camera_body_transform->position.x = bedding_max.x + 1.16;
 	}
 	return success;
 
@@ -1267,6 +1274,13 @@ bool PlayMode::buy_eggs() {
 			spawn_cricket();
 		totalMoney -= unitPrice;
 		success = true;
+	} else if (totalMoney >= unitPrice && is_at_capacity() && !first_time_cage_too_small) {
+		first_time_cage_too_small = true;
+		schedule_lambda([this](){
+				/*Todo: GET IMAGE FOR INCREASE CAPACITY BUTTON*/
+				buttons.emplace_back(this, "../scenes/egg.png", Button_UI::UPGRADE_CAGE);
+				display_notification(data_path("../text/first_time_cage_too_small.txt"));
+		}, 1.5);
 	}
 
 	return success;
