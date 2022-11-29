@@ -1267,8 +1267,7 @@ bool PlayMode::buy_eggs() {
 	} else if (totalMoney >= unitPrice && is_at_capacity() && !first_time_cage_too_small) {
 		first_time_cage_too_small = true;
 		schedule_lambda([this](){
-				/*Todo: GET IMAGE FOR INCREASE CAPACITY BUTTON*/
-				buttons.emplace_back(this, "../scenes/egg.png", Button_UI::UPGRADE_CAGE);
+				buttons.emplace_back(this, "../scenes/cage.png", Button_UI::UPGRADE_CAGE);
 				display_notification(data_path("../text/first_time_cage_too_small.txt"));
 		}, 1.5);
 	}
