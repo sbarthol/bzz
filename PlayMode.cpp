@@ -457,6 +457,9 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 	schedule_lambda([this](){
 		display_notification(data_path("../text/cricket_fact_5.txt"));
 	}, 420);
+	schedule_lambda([this](){
+		display_notification(data_path("../text/cricket_fact_6.txt"));
+	}, 480);
 
 	// sampler
 	GLuint sampler{0};
