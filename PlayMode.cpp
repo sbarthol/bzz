@@ -144,6 +144,17 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
   		}
 			drawable.pipeline.textures[0].texture = tex.id;
 		}
+		if(mesh_name.substr(0, 5) == "Glass") {
+			drawable.pipeline.blend = true;
+			drawable.transform->name = mesh_name;
+			struct PlayMode::texture tex;
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/glass.png"));
+  		if(ret) {
+  			printf("Cannot load texture, error code %d.\n", ret);
+    		abort();
+  		}
+			drawable.pipeline.textures[0].texture = tex.id;
+		}
 	});
 });
 
@@ -991,6 +1002,22 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	//update camera aspect ratio for drawable:
 	main_camera->aspect = float(drawable_size.x) / float(drawable_size.y);
 	alt_camera->aspect = float(drawable_size.x) / float(drawable_size.y);
+
+	// move glass to the back
+	std::list<Scene::Drawable> glass_drawables;
+	auto it = scene.drawables.begin();
+	while(it != scene.drawables.end()) {
+		Scene::Drawable &d = *it;
+		if (d.transform->name.substr(0, 5) == "Glass") {
+			it = scene.drawables.erase(it);
+			glass_drawables.push_back(d);
+		} else {
+			it++;
+		}
+	}
+	for(Scene::Drawable &d: glass_drawables) {
+		scene.drawables.push_back(d);
+	}
 
 	//set up light type and position for lit_color_texture_program:
 	// TODO: consider using the Light(s) in the scene to do this
