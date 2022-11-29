@@ -282,7 +282,7 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 	if (scene.cameras.size() != 2) throw std::runtime_error("Expecting scene to have exactly two cameras, but it has " + std::to_string(scene.cameras.size()));
 	main_camera = &scene.cameras.front();
 	alt_camera = &scene.cameras.back();
-	camera_body_transform->scale = glm::vec3(0.f);
+	camera_body_transform->scale = glm::vec3(0.01f);
 
 	if(alt_camera->transform->position.z < main_camera->transform->position.z) {
 		std::swap(main_camera, alt_camera);
@@ -896,7 +896,7 @@ void PlayMode::update(float elapsed) {
 				display_notification(data_path("../text/first_time_alt_view.txt"));
 			}, 1.5f);
 		}
-		camera_body_transform->scale = glm::vec3(alt_view ? 0.f : 1.f);
+		camera_body_transform->scale = glm::vec3(alt_view ? 0.01f : 1.f);
 	}
 
 	// if(toggle_tutorial.pressed) {
