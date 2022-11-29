@@ -715,27 +715,39 @@ void PlayMode::update(float elapsed) {
 			if(cricket.is_dead() || cricket.is_egg()) {
 				continue;
 			}
-			if(std::rand() % 40 == 0 && !cricket.is_attacking) {
-				const float JumpDistance = 0.1f;
+			if(std::rand() % 30 == 0 && !cricket.is_attacking) {
+				const float JumpDistance = 0.12f;
 
-				glm::quat quat = glm::angleAxis(glm::radians(get_rng_range(-20.f,20.f)), glm::vec3(0.0,0.0,1.0));
-				cricket.transform->rotation = glm::normalize(cricket.transform->rotation * quat);
+				if(strawberry_transforms.size() == 0 || cricket.cricketID % 5 == 0) {
 
-				Scene::Transform *closest_strawberry = nullptr;
-				for(Scene::Transform *transform: strawberry_transforms) {
-					if(closest_strawberry == nullptr || 
+					glm::quat quat = glm::angleAxis(glm::radians(get_rng_range(-20.f,20.f)), glm::vec3(0.0,0.0,1.0));
+					cricket.transform->rotation = glm::normalize(cricket.transform->rotation * quat);
+					glm::vec3 dir = cricket.transform->rotation * glm::vec3(0.f, 1.f, 0.f) ;
+					dir = JumpDistance * glm::normalize(dir);
+					cricket.transform->position += dir;
+
+				} else {
+
+					Scene::Transform *closest_strawberry = nullptr;
+					for(Scene::Transform *transform: strawberry_transforms) {
+						if(closest_strawberry == nullptr || 
 						glm::length(cricket.transform->position - transform->position) < glm::length(cricket.transform->position - closest_strawberry->position)) {
 						closest_strawberry = transform;
+						}
+					}
+
+					glm::vec3 strawberry_dir = closest_strawberry->position - cricket.transform->position;
+					strawberry_dir.z = 0.f;
+					glm::quat quat = rotationBetweenVectors(glm::vec3(0.f, 1.f, 0.f), strawberry_dir) * glm::angleAxis(glm::radians(get_rng_range(-20.f,20.f)), glm::vec3(0.0,0.0,1.0));
+					cricket.transform->rotation = glm::normalize(quat);
+
+					if(glm::length(cricket.transform->position - closest_strawberry->position) >= 0.4f) {
+						glm::vec3 dir = cricket.transform->rotation * glm::vec3(0.f, 1.f, 0.f) ;
+						dir = JumpDistance * glm::normalize(dir);
+						cricket.transform->position += dir;
 					}
 				}
-				if(closest_strawberry != nullptr && glm::length(cricket.transform->position - closest_strawberry->position) < 0.4f) {
-					continue;
-				}
-
-				glm::vec3 dir = cricket.transform->rotation * glm::vec3(0.f, 1.f, 0.f) ;
-				dir = JumpDistance * glm::normalize(dir);
-				cricket.transform->position += dir;
-
+				
 				glm::vec3 &pos = cricket.transform->position;
 				const float eps = 0.2f;
 
@@ -827,32 +839,41 @@ void PlayMode::update(float elapsed) {
 	}
 
 	//update food and starvation
-	if ((uint64_t)(total_elapsed)%2 == 0)
 	{
-		// Todo: do adults eat more than babies ?
-		// Todo: do not eat at every frame
+		static float current_elapsed = 0.f;
+		current_elapsed += elapsed;
+		if(current_elapsed > 0.7) {
+			
+			// Todo: do adults eat more than babies ?
+			// Todo: do not eat at every frame
 		
-		if (totalFood == 0.f){
-			auto is_starving = [](){
-				return rand() % 1000 + 1 < 6;
-			};
-			for( Cricket &cricket: Crickets) {
-				if(cricket.is_dead() || cricket.is_egg()) {
-					continue;
-				}
-				cricket.is_healthy = !is_starving();
-				if(cricket.is_dead()) {
-					if(!first_time_starved) {
-						first_time_starved = true;
-						schedule_lambda([this](){
-							display_notification(data_path("../text/first_time_starved.txt"));
-						}, 1);
+			if (totalFood == 0.f){
+				auto is_starving = [](){
+					return rand() % 1000 + 1 < 6;
+				};
+				for( Cricket &cricket: Crickets) {
+					if(cricket.is_dead() || cricket.is_egg()) {
+						continue;
 					}
-					kill_cricket(cricket);
+					cricket.is_healthy = !is_starving();
+					if(cricket.is_dead()) {
+						if(!first_time_starved) {
+							first_time_starved = true;
+							schedule_lambda([this](){
+								display_notification(data_path("../text/first_time_starved.txt"));
+							}, 1);
+						}
+						kill_cricket(cricket);
+					}
 				}
 			}
+			totalFood = std::max(0.f, totalFood - (numBabyCrickets + numMatureCrickets) * cricketEatingRate * current_elapsed);
+			current_elapsed = 0.f;
 		}
-		totalFood = std::max(0.f, totalFood - (numBabyCrickets + numMatureCrickets) * cricketEatingRate);
+	}
+	if ((uint64_t)(total_elapsed)%2 == 0)
+	{
+		
 	}
 
 	// switch camera
