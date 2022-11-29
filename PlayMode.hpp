@@ -157,7 +157,7 @@ struct PlayMode : Mode {
 	size_t numDeadCrickets = 0;
 	size_t cageCapacity = 50; 
 	size_t unitEggs = 20;
-	float totalMoney = 2500.f;
+	float totalMoney = 250.f;
 	float totalFood = 200.f;
 	float eggPrice = 200.f;
 	float foodPrice = 100.f;

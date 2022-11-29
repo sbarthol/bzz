@@ -223,8 +223,8 @@ void PlayMode::spawn_cricket() {
 	Scene::Transform *transform = &scene.transforms.back();
 	Cricket cricket = Cricket(Cricket::seq++, transform);
 
-	cricket.hatchAge = get_rng_range(1.f, 2.f);
-	cricket.matureAge = get_rng_range(3.f, 4.f);
+	cricket.hatchAge = get_rng_range(6.f, 9.f);
+	cricket.matureAge = get_rng_range(20.f, 30.f);
 	cricket.lifeSpan = get_rng_range(80.f, 110.f);
 	
 	Crickets.push_back(cricket);
