@@ -305,7 +305,7 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 		std::swap(bedding_min.y, bedding_max.y);
 	}
 
-	camera_body_transform->position.x = bedding_max.x + 1.16;
+	camera_body_transform->position.x = bedding_max.x + 1.16f;
 
 	const char *VERTEX_SHADER = ""
         "#version 330\n"
@@ -613,7 +613,7 @@ void PlayMode::update(float elapsed) {
 		if(current_elapsed > period) {
 			current_elapsed = 0.f;
 			const int k = 5;
-			float adjustment = std::rand() % (2 * k + 1) - k;
+			float adjustment = (float) (std::rand() % (2 * k + 1) - k);
 			cricketPrice = std::max(20.f, adjustment + cricketPrice);
 		}
 	}
@@ -1284,7 +1284,7 @@ bool PlayMode::buy_food() {
 bool PlayMode::upgrade_cage() {
 	std::cout << "increasing cage size" << std::endl;
 	
-	const float unitPrice = cageCapacity*2;
+	const float unitPrice = (float) cageCapacity*2;
 	bool success = false;
 
 
@@ -1298,7 +1298,7 @@ bool PlayMode::upgrade_cage() {
 		bedding_min *= 1.1f;
 		bedding_max *= 1.1f;
 
-		camera_body_transform->position.x = bedding_max.x + 1.16;
+		camera_body_transform->position.x = bedding_max.x + 1.16f;
 	}
 	return success;
 
