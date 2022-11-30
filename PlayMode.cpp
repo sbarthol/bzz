@@ -155,6 +155,17 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
   		}
 			drawable.pipeline.textures[0].texture = tex.id;
 		}
+		if(mesh_name.substr(0, 5) == "Book") {
+			drawable.pipeline.blend = true;
+			drawable.transform->name = mesh_name;
+			struct PlayMode::texture tex;
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/book.png"));
+  		if(ret) {
+  			printf("Cannot load texture, error code %d.\n", ret);
+    		abort();
+  		}
+			drawable.pipeline.textures[0].texture = tex.id;
+		}
 	});
 });
 
@@ -1024,7 +1035,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	
 	glUseProgram(lit_color_texture_program->program);
 	glUniform1i(lit_color_texture_program->LIGHT_TYPE_int, 0);
-	glUniform3fv(lit_color_texture_program->LIGHT_DIRECTION_vec3, 1, glm::value_ptr(glm::normalize(glm::vec3(1.0f, 0.0f, -1.0f))));
+	glUniform3fv(lit_color_texture_program->LIGHT_DIRECTION_vec3, 1, glm::value_ptr(glm::normalize(glm::vec3(-1.0f, 0.0f, -1.0f))));
 	glUniform3fv(lit_color_texture_program->LIGHT_ENERGY_vec3, 1, glm::value_ptr(glm::vec3(69.f, 25.f, 251.f) / 10.f));
 	glUniform3fv(lit_color_texture_program->LIGHT_LOCATION_vec3, 1, glm::value_ptr(glm::vec3(1.93f, 0.09f, 3.79f)));
 	glUseProgram(0);
