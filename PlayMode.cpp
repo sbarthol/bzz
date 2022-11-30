@@ -1014,22 +1014,9 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	main_camera->aspect = float(drawable_size.x) / float(drawable_size.y);
 	alt_camera->aspect = float(drawable_size.x) / float(drawable_size.y);
 
-	// move shadow to the back
-	auto it = scene.drawables.begin();
-	while(it != scene.drawables.end()) {
-		Scene::Drawable &d = *it;
-		if (d.transform->name == "shadow") {
-			it = scene.drawables.erase(it);
-			scene.drawables.push_back(d);
-			break;
-		} else {
-			it++;
-		}
-	}
-
 	// move glass to the back
 	std::list<Scene::Drawable> glass_drawables;
-	it = scene.drawables.begin();
+	auto it = scene.drawables.begin();
 	while(it != scene.drawables.end()) {
 		Scene::Drawable &d = *it;
 		if (d.transform->name.substr(0, 5) == "Glass") {
