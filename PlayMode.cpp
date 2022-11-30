@@ -608,10 +608,10 @@ void PlayMode::update(float elapsed) {
 	//Fluctuating cricket prices
 	{
 		const float period = 3.f;
-		static float current_elapsed = 0.f;
-		current_elapsed += elapsed;
-		if(current_elapsed > period) {
-			current_elapsed = 0.f;
+		static float cur_elpased = 0.f;
+		cur_elpased += elapsed;
+		if(cur_elpased > period) {
+			cur_elpased = 0.f;
 			const int k = 5;
 			float adjustment = (float) (std::rand() % (2 * k + 1) - k);
 			cricketPrice = std::max(20.f, adjustment + cricketPrice);
@@ -851,9 +851,9 @@ void PlayMode::update(float elapsed) {
 
 	//update food and starvation
 	{
-		static float current_elapsed = 0.f;
-		current_elapsed += elapsed;
-		if(current_elapsed > 0.7) {
+		static float cur_elpased = 0.f;
+		cur_elpased += elapsed;
+		if(cur_elpased > 0.7) {
 			
 			// Todo: do adults eat more than babies ?
 			// Todo: do not eat at every frame
@@ -878,8 +878,8 @@ void PlayMode::update(float elapsed) {
 					}
 				}
 			}
-			totalFood = std::max(0.f, totalFood - (numBabyCrickets + numMatureCrickets) * cricketEatingRate * current_elapsed);
-			current_elapsed = 0.f;
+			totalFood = std::max(0.f, totalFood - (numBabyCrickets + numMatureCrickets) * cricketEatingRate * cur_elpased);
+			cur_elpased = 0.f;
 		}
 	}
 	if ((uint64_t)(total_elapsed)%2 == 0)
@@ -1397,7 +1397,7 @@ bool PlayMode::sell_mature() {
 	if (success) {
 		// glm::u8vec4(0x00, 0x00, 0x00, 0x00)
 
-		glm::vec2 anchor;
+		glm::vec2 anchor = glm::vec2(0.f, 0.f);
 		for(PlayMode::Button_UI button:buttons) {
 			if(button.trigger_event == Button_UI::SELL_MATURE) {
 				anchor = button.anchor;
