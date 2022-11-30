@@ -17,7 +17,7 @@
     - [Strawberry](https://www.freepik.com/free-vector/collection-mixed-pixelated-fruits_2632369.htm#query=strawberry%20pixel%20art&position=0&from_view=search&track=sph)
     - [Egg](https://www.flaticon.com/free-icons/humidity)
     - [Dollar wad](http://pixelartmaker.com/art/6548026ccecefd4)
-    - [Cricket](https://sketchfab.com/3d-models/basic-cricket-4ca488a5b4724aaf86ad0b07d41a5e8e#download)
+    - [Cricket 3D](https://sketchfab.com/3d-models/basic-cricket-4ca488a5b4724aaf86ad0b07d41a5e8e#download)
     - [Terrarium](https://www.blenderkit.com/get-blenderkit/f31f86a2-714d-4caf-8d93-fb7f5b2b6a53/)
     - [Bag of flour](https://www.blenderkit.com/get-blenderkit/741ad44a-2b64-4a8f-8e56-cd5175881bb2/)
     - [Table](https://www.blenderkit.com/get-blenderkit/bf2e6b17-ed2a-472c-8031-aa9836b9570d/)
@@ -33,6 +33,7 @@
     - [Syringe](http://pixelartmaker.com/art/65183ba995ca3de)
     - [Cage](https://twitter.com/pixelforgegames/status/1347616860720664576)
     - [Green arrow](https://www.nicepng.com/ourpic/u2q8u2r5o0o0u2i1_green-arrow-left-free-vector-graphics-free-pictures/)
+    - [Cricket 2D](https://www.shareicon.net/insect-animals-animal-kingdom-bug-cricket-737879#google_vignette)
 
 - Textures
     - [Metal](https://www.freepik.com/free-photo/metallic-textured-background_4139276.htm#query=metal%20texture&position=1&from_view=keyword)
@@ -45,6 +46,9 @@
     - [Soil](https://www.freepik.com/free-photo/top-view-soil_4606525.htm#query=soil%20texture&position=2&from_view=search&track=sph)
     - [Camera lens](http://photoguild.org/camera-lens/)
     - [Crate](https://www.pexels.com/photo/brown-wooden-board-164005/)
+    - [Book side](https://www.textures.com/download/BookSide0047/105437)
+    - [Old book cover](https://lostandtaken.com/downloads/black-bumpy-old-book-cover-texture/)
+    - [Gold](https://www.freepik.com/free-photo/golden-texture-with-lightspot-background_10264299.htm#query=gold%20texture&position=31&from_view=search&track=sph)
 
 - Audio
     - [Chirping](https://freesound.org/people/GB01/sounds/530477/)
