@@ -19,6 +19,7 @@
 #include <stdio.h>
 
 int PlayMode::Cricket::seq = 0;
+static GLuint shadow_tex = 0;
 
 GLuint bzz_meshes_for_lit_color_texture_program = 0;
 Load< MeshBuffer > bzz_meshes(LoadTagDefault, []() -> MeshBuffer const * {
@@ -160,6 +161,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 			drawable.transform->name = mesh_name;
 			struct PlayMode::texture tex;
 			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/shadow.png"));
+			shadow_tex = tex.id;
 		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
@@ -228,6 +230,7 @@ Scene::Transform* PlayMode::spawn_strawberry() {
 void PlayMode::spawn_cricket() {
 
 	Mesh const &mesh = bzz_meshes->lookup("BabyCricket");
+	Mesh const &shadow_mesh = bzz_meshes->lookup("shadow");
 
 	scene.transforms.emplace_back();
 
@@ -255,6 +258,24 @@ void PlayMode::spawn_cricket() {
 	drawable.pipeline.start = mesh.start;
 	drawable.pipeline.count = mesh.count;
 
+	// add shadow mesh
+	scene.transforms.emplace_back();
+	Scene::Transform *shadow_transform = &scene.transforms.back();
+	shadow_transform->name = "shadow_" + std::to_string(cricket.cricketID);
+	shadow_transform->parent = transform;
+	shadow_transform->position = glm::vec3(0.f, 0.f, -0.1f);
+
+	scene.drawables.emplace_back(Scene::Drawable(shadow_transform));
+	Scene::Drawable &shadow_drawable = scene.drawables.back();
+
+	shadow_drawable.pipeline = lit_color_texture_program_pipeline;
+
+	shadow_drawable.pipeline.vao = bzz_meshes_for_lit_color_texture_program;
+	shadow_drawable.pipeline.type = shadow_mesh.type;
+	shadow_drawable.pipeline.start = shadow_mesh.start;
+	shadow_drawable.pipeline.count = shadow_mesh.count;
+	shadow_drawable.pipeline.blend = true;
+	shadow_drawable.pipeline.textures[0].texture = shadow_tex;
 }
 
 void PlayMode::kill_cricket(Cricket &cricket) {
