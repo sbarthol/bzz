@@ -282,6 +282,20 @@ void PlayMode::kill_cricket(Cricket &cricket) {
 	glm::vec3 axis = glm::normalize(glm::vec3(0.f, 1.f, 0.f));
 	glm:: quat turn_upside_down = glm::angleAxis(glm::radians(180.f), axis);
 	cricket.transform->rotation = glm::normalize(cricket.transform->rotation * turn_upside_down);
+
+	// but the shadow should stay at the same place
+	size_t IDpos = cricket.transform->name.find("Cricket_") + std::strlen("Cricket_");
+	std::string shadow_name = "shadow_" + cricket.transform->name.substr(IDpos);
+	
+	auto it = scene.drawables.begin();
+	while(it != scene.drawables.end()) {
+		Scene::Drawable dr = *it;
+		if ( it->transform->name == shadow_name) {
+			dr.transform->position = glm::vec3(0.f, 0.f, -dr.transform->position.z);
+		} 
+
+		it++;
+	}
 }
 
 
