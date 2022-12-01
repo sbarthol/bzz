@@ -1377,17 +1377,21 @@ bool PlayMode::buy_eggs() {
 	return success;
 }
 
-// TODO: upscale cricket shadow when a cricket mature. It's a bit difficult
-// to do now since mature_cricket gets called many times on the same cricket.
 void PlayMode::mature_cricket(Cricket &cricket) {
 	Mesh const &mesh = bzz_meshes->lookup("AdultCricket");
+	bool cricket_found = false, shadow_found = false;
 	for(Scene::Drawable &drawable: scene.drawables) {
 		if(drawable.transform->name == "Cricket_" + std::to_string(cricket.cricketID)) {
 			drawable.pipeline.type = mesh.type;
 			drawable.pipeline.start = mesh.start;
 			drawable.pipeline.count = mesh.count;
-			break;
+			cricket_found = true;
 		}
+		if(drawable.transform->name == "shadow_" + std::to_string(cricket.cricketID)) {
+			drawable.transform->scale = glm::vec3(2.f, 2.f, 2.f);
+			shadow_found = true;
+		}
+		if (cricket_found && shadow_found) break;
 	}
 }
 
