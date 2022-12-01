@@ -213,6 +213,11 @@ Load< Sound::Sample > shutter_sample(LoadTagDefault, []() -> Sound::Sample const
 	return new Sound::Sample(data_path("shutter.wav"));
 });
 
+Load< Sound::Sample > upgrade_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("upgrade.wav"));
+});
+
+
 
 
 Scene::Transform* PlayMode::spawn_strawberry() {
@@ -1254,6 +1259,8 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 	
 		case Button_UI::UPGRADE_CAGE:	
 			clickSuccess = upgrade_cage();
+			if (clickSuccess)
+				Sound::play(*upgrade_sample, 1.0f, 0.0f);
 			break;
 	
 		case Button_UI::BUY_CAMERA:	
