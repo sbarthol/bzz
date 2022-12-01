@@ -19,6 +19,7 @@
 #include <stdio.h>
 
 int PlayMode::Cricket::seq = 0;
+static GLuint shadow_tex = 0;
 
 GLuint bzz_meshes_for_lit_color_texture_program = 0;
 Load< MeshBuffer > bzz_meshes(LoadTagDefault, []() -> MeshBuffer const * {
@@ -160,7 +161,19 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
 			drawable.transform->name = mesh_name;
 			struct PlayMode::texture tex;
 			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/book.png"));
-  		if(ret) {
+  		if(ret) {	
+			printf("Cannot load texture, error code %d.\n", ret);
+    		abort();
+  		}
+			drawable.pipeline.textures[0].texture = tex.id;
+		}
+		if (mesh_name == "shadow") {
+			drawable.pipeline.blend = true;
+			drawable.transform->name = mesh_name;
+			struct PlayMode::texture tex;
+			int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/shadow.png"));
+			shadow_tex = tex.id;
+		if(ret) {
   			printf("Cannot load texture, error code %d.\n", ret);
     		abort();
   		}
@@ -228,6 +241,7 @@ Scene::Transform* PlayMode::spawn_strawberry() {
 void PlayMode::spawn_cricket() {
 
 	Mesh const &mesh = bzz_meshes->lookup("BabyCricket");
+	Mesh const &shadow_mesh = bzz_meshes->lookup("shadow");
 
 	scene.transforms.emplace_back();
 
@@ -255,12 +269,43 @@ void PlayMode::spawn_cricket() {
 	drawable.pipeline.start = mesh.start;
 	drawable.pipeline.count = mesh.count;
 
+	// add shadow mesh
+	scene.transforms.emplace_back();
+	Scene::Transform *shadow_transform = &scene.transforms.back();
+	shadow_transform->name = "shadow_" + std::to_string(cricket.cricketID);
+	shadow_transform->parent = transform;
+	shadow_transform->position = glm::vec3(0.f, 0.f, -0.1f);
+
+	scene.drawables.emplace_back(Scene::Drawable(shadow_transform));
+	Scene::Drawable &shadow_drawable = scene.drawables.back();
+
+	shadow_drawable.pipeline = lit_color_texture_program_pipeline;
+
+	shadow_drawable.pipeline.vao = bzz_meshes_for_lit_color_texture_program;
+	shadow_drawable.pipeline.type = shadow_mesh.type;
+	shadow_drawable.pipeline.start = shadow_mesh.start;
+	shadow_drawable.pipeline.count = shadow_mesh.count;
+	shadow_drawable.pipeline.blend = true;
+	shadow_drawable.pipeline.textures[0].texture = shadow_tex;
 }
 
 void PlayMode::kill_cricket(Cricket &cricket) {
 	glm::vec3 axis = glm::normalize(glm::vec3(0.f, 1.f, 0.f));
 	glm:: quat turn_upside_down = glm::angleAxis(glm::radians(180.f), axis);
 	cricket.transform->rotation = glm::normalize(cricket.transform->rotation * turn_upside_down);
+
+	// but the shadow should stay at the same place
+	std::string shadow_name = "shadow_" + std::to_string(cricket.cricketID);
+	
+	auto it = scene.drawables.begin();
+	while(it != scene.drawables.end()) {
+		Scene::Drawable dr = *it;
+		if ( it->transform->name == shadow_name) {
+			dr.transform->position = glm::vec3(0.f, 0.f, -dr.transform->position.z);
+		} 
+
+		it++;
+	}
 }
 
 
@@ -619,10 +664,10 @@ void PlayMode::update(float elapsed) {
 	//Fluctuating cricket prices
 	{
 		const float period = 3.f;
-		static float current_elapsed = 0.f;
-		current_elapsed += elapsed;
-		if(current_elapsed > period) {
-			current_elapsed = 0.f;
+		static float cur_elpased = 0.f;
+		cur_elpased += elapsed;
+		if(cur_elpased > period) {
+			cur_elpased = 0.f;
 			const int k = 5;
 			float adjustment = (float) (std::rand() % (2 * k + 1) - k);
 			cricketPrice = std::max(20.f, adjustment + cricketPrice);
@@ -862,9 +907,9 @@ void PlayMode::update(float elapsed) {
 
 	//update food and starvation
 	{
-		static float current_elapsed = 0.f;
-		current_elapsed += elapsed;
-		if(current_elapsed > 0.7) {
+		static float cur_elpased = 0.f;
+		cur_elpased += elapsed;
+		if(cur_elpased > 0.7) {
 			
 			// Todo: do adults eat more than babies ?
 			// Todo: do not eat at every frame
@@ -889,8 +934,8 @@ void PlayMode::update(float elapsed) {
 					}
 				}
 			}
-			totalFood = std::max(0.f, totalFood - (numBabyCrickets + numMatureCrickets) * cricketEatingRate * current_elapsed);
-			current_elapsed = 0.f;
+			totalFood = std::max(0.f, totalFood - (numBabyCrickets + numMatureCrickets) * cricketEatingRate * cur_elpased);
+			cur_elpased = 0.f;
 		}
 	}
 	if ((uint64_t)(total_elapsed)%2 == 0)
@@ -1345,13 +1390,19 @@ bool PlayMode::buy_eggs() {
 
 void PlayMode::mature_cricket(Cricket &cricket) {
 	Mesh const &mesh = bzz_meshes->lookup("AdultCricket");
+	bool cricket_found = false, shadow_found = false;
 	for(Scene::Drawable &drawable: scene.drawables) {
 		if(drawable.transform->name == "Cricket_" + std::to_string(cricket.cricketID)) {
 			drawable.pipeline.type = mesh.type;
 			drawable.pipeline.start = mesh.start;
 			drawable.pipeline.count = mesh.count;
-			break;
+			cricket_found = true;
 		}
+		if(drawable.transform->name == "shadow_" + std::to_string(cricket.cricketID)) {
+			drawable.transform->scale = glm::vec3(2.f, 2.f, 2.f);
+			shadow_found = true;
+		}
+		if (cricket_found && shadow_found) break;
 	}
 }
 
@@ -1398,17 +1449,27 @@ bool PlayMode::sell_mature() {
 	auto it = scene.drawables.begin();
 	while(it != scene.drawables.end()) {
 		Scene::Drawable dr = *it;
+
 		if ( mature_cricket_names.count(dr.transform->name) ) {
 			it = scene.drawables.erase(it);
-		} else {
-			it++;
+			continue;
+		} else if (dr.transform->name.find("shadow_") != std::string::npos) {
+			size_t IDpos = dr.transform->name.find("shadow_") + std::strlen("shadow_");
+			std::string cricketID = dr.transform->name.substr(IDpos);
+
+			if (mature_cricket_names.count("Cricket_" + cricketID)) {
+				it = scene.drawables.erase(it);
+				continue;
+			}
 		}
+
+		it++;
 	}
 
 	if (success) {
 		// glm::u8vec4(0x00, 0x00, 0x00, 0x00)
 
-		glm::vec2 anchor;
+		glm::vec2 anchor = glm::vec2(0.f, 0.f);
 		for(PlayMode::Button_UI button:buttons) {
 			if(button.trigger_event == Button_UI::SELL_MATURE) {
 				anchor = button.anchor;
@@ -1454,13 +1515,22 @@ bool PlayMode::remove_dead_crickets() {
 	auto it = scene.drawables.begin();
 	while(it != scene.drawables.end()) {
 		Scene::Drawable dr = *it;
+
 		if ( dead_cricket_names.count(dr.transform->name) ) {
 			it = scene.drawables.erase(it);
-		} else {
-			it++;
-		}
-	}
+			continue;
+		} else if (dr.transform->name.find("shadow_") != std::string::npos) {
+			size_t IDpos = dr.transform->name.find("shadow_") + std::strlen("shadow_");
+			std::string cricketID = dr.transform->name.substr(IDpos);
 
+			if (dead_cricket_names.count("Cricket_" + cricketID)) {
+				it = scene.drawables.erase(it);
+				continue;
+			}
+		}
+
+		it++;
+	}
 	return success;
 }
 
