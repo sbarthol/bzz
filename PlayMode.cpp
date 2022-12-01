@@ -1422,17 +1422,18 @@ bool PlayMode::sell_mature() {
 
 		if ( mature_cricket_names.count(dr.transform->name) ) {
 			it = scene.drawables.erase(it);
+			continue;
 		} else if (dr.transform->name.find("shadow_") != std::string::npos) {
 			size_t IDpos = dr.transform->name.find("shadow_") + std::strlen("shadow_");
 			std::string cricketID = dr.transform->name.substr(IDpos);
 
-			if (mature_cricket_names.count("Cricket_" + cricketID)) 
+			if (mature_cricket_names.count("Cricket_" + cricketID)) {
 				it = scene.drawables.erase(it);
-			else
-				it++;
-		} else {
-			it++;
+				continue;
+			}
 		}
+
+		it++;
 	}
 
 	if (success) {
@@ -1484,13 +1485,22 @@ bool PlayMode::remove_dead_crickets() {
 	auto it = scene.drawables.begin();
 	while(it != scene.drawables.end()) {
 		Scene::Drawable dr = *it;
+
 		if ( dead_cricket_names.count(dr.transform->name) ) {
 			it = scene.drawables.erase(it);
-		} else {
-			it++;
-		}
-	}
+			continue;
+		} else if (dr.transform->name.find("shadow_") != std::string::npos) {
+			size_t IDpos = dr.transform->name.find("shadow_") + std::strlen("shadow_");
+			std::string cricketID = dr.transform->name.substr(IDpos);
 
+			if (dead_cricket_names.count("Cricket_" + cricketID)) {
+				it = scene.drawables.erase(it);
+				continue;
+			}
+		}
+
+		it++;
+	}
 	return success;
 }
 
