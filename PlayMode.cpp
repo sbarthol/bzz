@@ -284,8 +284,7 @@ void PlayMode::kill_cricket(Cricket &cricket) {
 	cricket.transform->rotation = glm::normalize(cricket.transform->rotation * turn_upside_down);
 
 	// but the shadow should stay at the same place
-	size_t IDpos = cricket.transform->name.find("Cricket_") + std::strlen("Cricket_");
-	std::string shadow_name = "shadow_" + cricket.transform->name.substr(IDpos);
+	std::string shadow_name = "shadow_" + std::to_string(cricket.cricketID);
 	
 	auto it = scene.drawables.begin();
 	while(it != scene.drawables.end()) {
@@ -1378,6 +1377,8 @@ bool PlayMode::buy_eggs() {
 	return success;
 }
 
+// TODO: upscale cricket shadow when a cricket mature. It's a bit difficult
+// to do now since mature_cricket gets called many times on the same cricket.
 void PlayMode::mature_cricket(Cricket &cricket) {
 	Mesh const &mesh = bzz_meshes->lookup("AdultCricket");
 	for(Scene::Drawable &drawable: scene.drawables) {
