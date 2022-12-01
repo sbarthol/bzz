@@ -55,6 +55,12 @@
     - [Sell cricket](https://freesound.org/people/kiddpark/sounds/201159/)
     - [Button click](https://freesound.org/people/EminYILDIRIM/sounds/536108/)
     - [Background music](https://freesound.org/people/Migfus20/sounds/559840/)
+    - [Buy food](https://freesound.org/people/acclivity/sounds/19988/)
+    - [Zoom](https://freesound.org/people/kwahmah_02/sounds/264105/)
+    - [Camera On/Off](https://freesound.org/people/AsdfgOrt/sounds/511939/)
+    - [Camera Shutter](https://freesound.org/people/roachpowder/sounds/170229/)
+
+
 
 - Font
     - [Arcade font](https://www.1001fonts.com/november-font.html)

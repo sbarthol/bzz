@@ -205,6 +205,14 @@ Load< Sound::Sample > zoom_sample(LoadTagDefault, []() -> Sound::Sample const * 
 	return new Sound::Sample(data_path("zoom.wav"));
 });
 
+Load< Sound::Sample > cam_on_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("cam_on.wav"));
+});
+
+Load< Sound::Sample > shutter_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("shutter.wav"));
+});
+
 
 
 Scene::Transform* PlayMode::spawn_strawberry() {
@@ -311,7 +319,7 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 	// Loop chirping sound and background music
 	// chirping_loop = Sound::loop(*chirping_sample, 1.0f, 0.0f);
 	// chirping_loop.
-	Sound::loop(*background_sample, 1.0f, 0.0f);
+	// Sound::loop(*background_sample, 1.0f, 0.0f);
 
 	Mesh const &mesh = bzz_meshes->lookup("Bedding");
 	glm::mat4x3 to_world = bedding_transform->make_local_to_world();
@@ -569,6 +577,13 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size_
 			}
 		} else if (evt.key.keysym.sym == SDLK_SPACE) {
 			space.pressed = true;
+			return true;
+		} else if (evt.key.keysym.sym == SDLK_k && evt.key.repeat == 0) {
+			// Camera capture / screenshot
+			if(alt_camera_bought) {
+				Sound::play(*shutter_sample, 1.0f, 0.0f);
+				return false; // Cause main to save screenshot
+			}
 			return true;
 		}
 	} else if (evt.type == SDL_KEYUP) {
@@ -917,6 +932,8 @@ void PlayMode::update(float elapsed) {
 			}, 1.5f);
 		}
 		camera_body_transform->scale = glm::vec3(alt_view ? 0.01f : 1.f);
+		Sound::play(*cam_on_sample, 1.0f, 0.0f);
+		
 	}
 
 	// if(toggle_tutorial.pressed) {
@@ -962,12 +979,24 @@ void PlayMode::update(float elapsed) {
 		);
 	} else {
 		float motion = 0.f;
+		static std::shared_ptr< Sound::PlayingSample > zoom_loop = NULL;
 
 		if (down.pressed && !up.pressed) motion = 0.01f;
 		if (!down.pressed && up.pressed) motion = -0.01f;
 
 		alt_camera->fovy += motion;
-		alt_camera->fovy = std::clamp(alt_camera->fovy, 0.01f, 1.6f);
+		alt_camera->fovy = std::clamp(alt_camera->fovy, 0.05f, 1.6f);
+
+		if (motion != 0.f && alt_camera->fovy!= 0.01f && alt_camera->fovy != 1.6f) {
+			if (zoom_loop == NULL) {
+				zoom_loop = Sound::loop(*zoom_sample, 1.0f, 0.0f);
+			}
+		} else {
+			if (zoom_loop != NULL) {
+				zoom_loop->stop();
+				zoom_loop = NULL;
+			}
+		}
 		// Todo: move left and right
 	}
 
@@ -1249,6 +1278,24 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 				}, 1.f);
 			}
 			break;
+		case Button_UI::BUY_RADIO:
+			clickSuccess = totalMoney >= 200;
+			if(clickSuccess) {
+				Sound::loop(*background_sample, 1.0f, 0.0f);
+				totalMoney -= 200;
+				schedule_lambda([this](){
+					auto it = buttons.begin();
+					while(it != buttons.end()) {
+						PlayMode::Button_UI b = *it;
+						if ( b.trigger_event == PlayMode::Button_UI::BUY_RADIO ) {
+							it = buttons.erase(it);
+						} else {
+							it++;
+						}
+					}
+				}, 1.f);
+			}
+			break;
 		case Button_UI::BUY_STEROIDS:	
 			clickSuccess = totalMoney >= 400 && numBabyCrickets + numMatureCrickets + numEggs > 0;
 			if(clickSuccess) {
@@ -1398,6 +1445,7 @@ bool PlayMode::sell_mature() {
 		
 		schedule_lambda([this](){
 			buttons.emplace_back(this, "../scenes/camera.png", Button_UI::BUY_CAMERA);
+			buttons.emplace_back(this, "../scenes/camera.png", Button_UI::BUY_RADIO);
 			buttons.emplace_back(this, "../scenes/syringe.png", Button_UI::BUY_STEROIDS);
 			display_notification(data_path("../text/first_time_500_dollars.txt"));
 		}, 2);
