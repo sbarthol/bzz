@@ -197,6 +197,15 @@ Load< Sound::Sample > click_error_sample(LoadTagDefault, []() -> Sound::Sample c
 	return new Sound::Sample(data_path("access_denied.wav"));
 });
 
+Load< Sound::Sample > plop_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("plop.wav"));
+});
+
+Load< Sound::Sample > zoom_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("zoom.wav"));
+});
+
+
 
 Scene::Transform* PlayMode::spawn_strawberry() {
 
@@ -640,7 +649,7 @@ void PlayMode::update(float elapsed) {
 	}
 
 	// update button pos
-		for(int i=0;i<buttons.size();i++){
+		for(uint i=0;i<buttons.size();i++){
 			buttons[i].anchor = glm::vec2(-0.9f + (i%2) * 0.2f, 0.5f - ((int)i/2) * 0.35f);
 		}
 
@@ -1199,6 +1208,8 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 	switch(callback) {
 		case Button_UI::BUY_FOOD:
 			clickSuccess = buy_food();
+			if (clickSuccess)
+				Sound::play(*plop_sample, 1.0f, 0.0f);
 			break;
 		case Button_UI::BUY_EGG:
 			clickSuccess = buy_eggs();
