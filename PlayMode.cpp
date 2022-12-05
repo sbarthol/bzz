@@ -955,23 +955,6 @@ void PlayMode::update(float elapsed) {
 		camera_body_transform->scale = glm::vec3(alt_view ? 0.0f : 1.f);
 	}
 
-	// if(toggle_tutorial.pressed) {
-	// 	toggle = !toggle;
-	// 	printf("toggling\n");
-	// 	first_time_food = toggle; 
-	// 	first_time_babies = toggle; 
-	// 	first_time_eggs = toggle;
-	// 	first_time_matured = toggle; 
-	// 	first_time_starved = toggle;
-	// 	first_time_sick = toggle;
-	// 	first_time_500_dollars = toggle;
-	// 	first_time_alt_view = toggle;
-	// 	first_time_steroids = toggle;
-	// 	first_time_too_big = toggle;
-	// 	first_time_is_attacking = toggle;
-	// 	alt_camera_bought = toggle;
-	// }
-
 	//move camera:
 	if(!alt_view){
 
