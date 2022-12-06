@@ -17,6 +17,7 @@
 #include <iostream>
 #include <errno.h>
 #include <stdio.h>
+#include <iterator>
 
 int PlayMode::Cricket::seq = 0;
 static GLuint shadow_tex = 0;
@@ -276,8 +277,7 @@ void PlayMode::spawn_cricket() {
 	shadow_transform->parent = transform;
 	shadow_transform->position = glm::vec3(0.f, 0.f, -0.1f);
 
-	scene.drawables.emplace_back(Scene::Drawable(shadow_transform));
-	Scene::Drawable &shadow_drawable = scene.drawables.back();
+	Scene::Drawable shadow_drawable(shadow_transform);
 
 	shadow_drawable.pipeline = lit_color_texture_program_pipeline;
 
@@ -287,6 +287,10 @@ void PlayMode::spawn_cricket() {
 	shadow_drawable.pipeline.count = shadow_mesh.count;
 	shadow_drawable.pipeline.blend = true;
 	shadow_drawable.pipeline.textures[0].texture = shadow_tex;
+	
+	auto it = scene.drawables.begin();
+	std::advance(it,4);
+	scene.drawables.insert(it, shadow_drawable);
 }
 
 void PlayMode::kill_cricket(Cricket &cricket) {
@@ -1041,22 +1045,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 	//update camera aspect ratio for drawable:
 	main_camera->aspect = float(drawable_size.x) / float(drawable_size.y);
 	alt_camera->aspect = float(drawable_size.x) / float(drawable_size.y);
-
-	// move glass to the back
-	std::list<Scene::Drawable> glass_drawables;
-	auto it = scene.drawables.begin();
-	while(it != scene.drawables.end()) {
-		Scene::Drawable &d = *it;
-		if (d.transform->name.substr(0, 5) == "Glass") {
-			it = scene.drawables.erase(it);
-			glass_drawables.push_back(d);
-		} else {
-			it++;
-		}
-	}
-	for(Scene::Drawable &d: glass_drawables) {
-		scene.drawables.push_back(d);
-	}
 
 	//set up light type and position for lit_color_texture_program:
 	// TODO: consider using the Light(s) in the scene to do this
