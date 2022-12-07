@@ -191,6 +191,10 @@ float get_rng_range(float a, float b) {
   return a + r;
 }
 
+Load< Sound::Sample > broken_glass_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("broken_glass.wav"));
+});
+
 Load< Sound::Sample > chirping_sample(LoadTagDefault, []() -> Sound::Sample const * {
 	return new Sound::Sample(data_path("chirping.wav"));
 });
@@ -810,6 +814,7 @@ void PlayMode::update(float elapsed) {
 								d.pipeline.textures[0].texture = tex.id;
 							}
 						}
+						Sound::play(*broken_glass_sample, 1.0f, 0.0f);
 						schedule_lambda([this](){
 							display_notification(data_path("../text/first_time_is_attacking.txt"));
 						}, 1.500f);
