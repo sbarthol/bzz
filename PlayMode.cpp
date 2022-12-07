@@ -799,6 +799,17 @@ void PlayMode::update(float elapsed) {
 					cricket.is_attacking = true;
 					if(!first_time_is_attacking) {
 						first_time_is_attacking = true;
+						struct PlayMode::texture tex;
+						int ret = PlayMode::png_to_gl_texture(&tex, data_path("../scenes/broken_glass.png"));
+  					if(ret) {
+  						printf("Cannot load texture, error code %d.\n", ret);
+    					abort();
+  					}
+						for(Scene::Drawable &d: scene.drawables) {
+							if(d.transform->name.substr(0,5) == "Glass") {
+								d.pipeline.textures[0].texture = tex.id;
+							}
+						}
 						schedule_lambda([this](){
 							display_notification(data_path("../text/first_time_is_attacking.txt"));
 						}, 1.500f);

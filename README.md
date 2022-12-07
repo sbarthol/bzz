@@ -50,6 +50,7 @@
     - [Book side](https://www.textures.com/download/BookSide0047/105437)
     - [Old book cover](https://lostandtaken.com/downloads/black-bumpy-old-book-cover-texture/)
     - [Gold](https://www.freepik.com/free-photo/golden-texture-with-lightspot-background_10264299.htm#query=gold%20texture&position=31&from_view=search&track=sph)
+    - [Broken glass](https://www.freepik.com/free-photo/fissured-glass-texture_27504199.htm#query=broken%20glass%20transparent&position=5&from_view=search&track=sph)
 
 - Audio
     - [Chirping](https://freesound.org/people/GB01/sounds/530477/)
