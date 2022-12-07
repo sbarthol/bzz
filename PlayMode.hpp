@@ -151,15 +151,15 @@ struct PlayMode : Mode {
 	Scene::Transform *first_cricket; 
 	std::vector<Cricket> Crickets;
 	float total_elapsed = 0.f;
-	float cricketEatingRate = 0.35f;
+	float cricketEatingRate = 0.8f;
 	size_t numEggs = 0;
 	size_t numBabyCrickets = 0;
 	size_t numMatureCrickets = 0;
 	size_t numDeadCrickets = 0;
 	size_t cageCapacity = 50; 
 	size_t unitEggs = 20;
-	float totalMoney = 250.f; //250
-	float totalFood = 200.f;
+	float totalMoney = 250.f;
+	float totalFood = 400.f;
 	float eggPrice = 200.f;
 	float foodPrice = 100.f;
 	float cricketPrice = 50.f;
