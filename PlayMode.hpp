@@ -133,6 +133,7 @@ struct PlayMode : Mode {
 
 	// Tutorial
 	bool toggle = false;
+	bool first_time_radio = false; 
 	bool first_time_food = false; 
 	bool first_time_babies = false; 
 	bool first_time_eggs = false;

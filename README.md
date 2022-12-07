@@ -34,6 +34,7 @@
     - [Cage](https://twitter.com/pixelforgegames/status/1347616860720664576)
     - [Green arrow](https://www.nicepng.com/ourpic/u2q8u2r5o0o0u2i1_green-arrow-left-free-vector-graphics-free-pictures/)
     - [Cricket 2D](https://www.shareicon.net/insect-animals-animal-kingdom-bug-cricket-737879#google_vignette)
+    - [Music note](http://pixelartmaker.com/art/339c1ee17abf629)
 
 - Textures
     - [Metal](https://www.freepik.com/free-photo/metallic-textured-background_4139276.htm#query=metal%20texture&position=1&from_view=keyword)

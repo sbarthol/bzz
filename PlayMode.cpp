@@ -1286,8 +1286,9 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 			}
 			break;
 		case Button_UI::BUY_RADIO:
-			clickSuccess = totalMoney >= 200;
+			clickSuccess = totalMoney >= 200 && !first_time_radio;
 			if(clickSuccess) {
+				first_time_radio = true;
 				Sound::loop(*background_sample, 1.0f, 0.0f);
 				totalMoney -= 200;
 				schedule_lambda([this](){
@@ -1300,7 +1301,7 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 							it++;
 						}
 					}
-				}, 1.f);
+				}, 1.5f);
 			}
 			break;
 		case Button_UI::BUY_STEROIDS:	
@@ -1452,7 +1453,7 @@ bool PlayMode::sell_mature() {
 		
 		schedule_lambda([this](){
 			buttons.emplace_back(this, "../scenes/camera.png", Button_UI::BUY_CAMERA);
-			buttons.emplace_back(this, "../scenes/camera.png", Button_UI::BUY_RADIO);
+			buttons.emplace_back(this, "../scenes/music.png", Button_UI::BUY_RADIO);
 			buttons.emplace_back(this, "../scenes/syringe.png", Button_UI::BUY_STEROIDS);
 			display_notification(data_path("../text/first_time_500_dollars.txt"));
 		}, 2);
