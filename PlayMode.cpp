@@ -21,6 +21,7 @@
 
 int PlayMode::Cricket::seq = 0;
 static GLuint shadow_tex = 0;
+static float base_z;
 
 GLuint bzz_meshes_for_lit_color_texture_program = 0;
 Load< MeshBuffer > bzz_meshes(LoadTagDefault, []() -> MeshBuffer const * {
@@ -297,7 +298,7 @@ void PlayMode::spawn_cricket() {
 	Scene::Transform *shadow_transform = &scene.transforms.back();
 	shadow_transform->name = "shadow_" + std::to_string(cricket.cricketID);
 	shadow_transform->parent = transform;
-	shadow_transform->position = glm::vec3(0.f, 0.f, -0.1f);
+	shadow_transform->position = glm::vec3(0.f, 0.f, -0.1f + 0.0001f * (cricket.cricketID % 2000));
 
 	Scene::Drawable shadow_drawable(shadow_transform);
 
@@ -342,6 +343,7 @@ PlayMode::PlayMode(glm::uvec2 window_size_) : window_size(window_size_), scene(*
 
 		if (transform.name == "AdultCricket") {
 			adult_cricket_transform = &transform;
+			base_z = adult_cricket_transform->position.z;
 			adult_cricket_transform->scale = glm::vec3(0.f);
 		}
 		if (transform.name == "BabyCricket") {
@@ -718,7 +720,7 @@ void PlayMode::update(float elapsed) {
 	}
 
 	// update button pos
-		for(uint i=0;i<buttons.size();i++){
+		for(size_t i=0;i<buttons.size();i++){
 			buttons[i].anchor = glm::vec2(-0.9f + (i%2) * 0.2f, 0.5f - ((int)i/2) * 0.35f);
 		}
 
@@ -789,6 +791,7 @@ void PlayMode::update(float elapsed) {
 
 			if(cricket.is_juicy && cricket.is_mature()) {
 				cricket.transform->scale = glm::vec3(std::min(1.f + (cricket.age - std::max(cricket.juicyAge, cricket.matureAge)) * 0.15f, 12.f));
+				cricket.transform->position.z = base_z + 0.10f * (cricket.transform->scale.z - 1);
 				if(cricket.transform->scale.x >= 4.5f && !first_time_too_big) {
 					first_time_too_big = true;
 					schedule_lambda([this](){
