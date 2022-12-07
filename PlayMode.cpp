@@ -1704,7 +1704,7 @@ void PlayMode::draw_stats(glm::uvec2 const &drawable_size, float x, float y) {
 
 	std:: string sep = "      ";
 	
-	std::string s = "Food: " + std::to_string((int)totalFood) + sep + "Money: " + std::to_string((int)totalMoney) + sep + "Eggs:" + std::to_string(numEggs) + sep + "Nymphs: " + std::to_string(numBabyCrickets) + sep + "Adults: " + std::to_string(numMatureCrickets);
+	std::string s = "Food: " + std::to_string((int)totalFood) + sep + "Money: $" + std::to_string((int)totalMoney) + sep + "Eggs:" + std::to_string(numEggs) + sep + "Nymphs: " + std::to_string(numBabyCrickets) + sep + "Adults: " + std::to_string(numMatureCrickets);
 	s += sep + "Capacity: "  + std::to_string(numEggs+ numBabyCrickets + numMatureCrickets + numDeadCrickets) + "/" + std::to_string(cageCapacity);
 
 	std::string s2; 
