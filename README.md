@@ -34,6 +34,7 @@
     - [Cage](https://twitter.com/pixelforgegames/status/1347616860720664576)
     - [Green arrow](https://www.nicepng.com/ourpic/u2q8u2r5o0o0u2i1_green-arrow-left-free-vector-graphics-free-pictures/)
     - [Cricket 2D](https://www.shareicon.net/insect-animals-animal-kingdom-bug-cricket-737879#google_vignette)
+    - [Music note](http://pixelartmaker.com/art/339c1ee17abf629)
 
 - Textures
     - [Metal](https://www.freepik.com/free-photo/metallic-textured-background_4139276.htm#query=metal%20texture&position=1&from_view=keyword)
@@ -55,6 +56,12 @@
     - [Sell cricket](https://freesound.org/people/kiddpark/sounds/201159/)
     - [Button click](https://freesound.org/people/EminYILDIRIM/sounds/536108/)
     - [Background music](https://freesound.org/people/Migfus20/sounds/559840/)
+    - [Buy food](https://freesound.org/people/acclivity/sounds/19988/)
+    - [Zoom](https://freesound.org/people/kwahmah_02/sounds/264105/)
+    - [Camera On/Off](https://freesound.org/people/AsdfgOrt/sounds/511939/)
+    - [Camera Shutter](https://freesound.org/people/roachpowder/sounds/170229/)
+
+
 
 - Font
     - [Arcade font](https://www.1001fonts.com/november-font.html)

@@ -133,6 +133,7 @@ struct PlayMode : Mode {
 
 	// Tutorial
 	bool toggle = false;
+	bool first_time_radio = false; 
 	bool first_time_food = false; 
 	bool first_time_babies = false; 
 	bool first_time_eggs = false;
@@ -157,7 +158,7 @@ struct PlayMode : Mode {
 	size_t numDeadCrickets = 0;
 	size_t cageCapacity = 50; 
 	size_t unitEggs = 20;
-	float totalMoney = 250.f;
+	float totalMoney = 250.f; //250
 	float totalFood = 200.f;
 	float eggPrice = 200.f;
 	float foodPrice = 100.f;
@@ -198,8 +199,9 @@ struct PlayMode : Mode {
 			BUY_EGG = 2,
 			REMOVE_DEAD = 3,
 			BUY_CAMERA = 4,
-			BUY_STEROIDS = 5,
-			UPGRADE_CAGE = 6
+			BUY_RADIO = 5,
+			BUY_STEROIDS = 6,
+			UPGRADE_CAGE = 7
 		};
 		call_back trigger_event;
 
