@@ -788,7 +788,7 @@ void PlayMode::update(float elapsed) {
 			}
 
 			if(cricket.is_juicy && cricket.is_mature()) {
-				cricket.transform->scale = glm::vec3(std::min(1.f + (cricket.age - cricket.juicyAge) * 0.15f, 8.f));
+				cricket.transform->scale = glm::vec3(std::min(1.f + (cricket.age - std::max(cricket.juicyAge, cricket.matureAge)) * 0.15f, 12.f));
 				if(cricket.transform->scale.x >= 4.5f && !first_time_too_big) {
 					first_time_too_big = true;
 					schedule_lambda([this](){
@@ -1325,11 +1325,12 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 				Sound::play(*cash_sample, 1.0f, 0.0f);
 				totalMoney -= 400;
 				for(Cricket &cricket: Crickets) {
+					if(!cricket.is_juicy) {
+						cricket.juicyAge = cricket.age;
+					}
 					cricket.is_juicy = true;
-					cricket.juicyAge = cricket.age;
-					cricket.hatchAge /= 2.f;
-					cricket.matureAge /= 2.f;
 					cricket.lifeSpan = 10000.f;
+					cricket.age += 5;
 				}
 				if(!first_time_steroids) {
 					schedule_lambda([this](){
