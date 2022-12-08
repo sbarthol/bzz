@@ -1298,11 +1298,11 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 			break;
 	
 		case Button_UI::BUY_CAMERA:	
-			clickSuccess = totalMoney >= 400;
+			clickSuccess = totalMoney >= 10000;
 			if(clickSuccess) {
 				Sound::play(*cash_sample, 1.0f, 0.0f);
 				camera_body_transform->scale = glm::vec3(1.f);
-				totalMoney -= 400;
+				totalMoney -= 10000;
 				alt_camera_bought = true;
 				schedule_lambda([this](){
 					auto it = buttons.begin();
@@ -1320,11 +1320,11 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 			}
 			break;
 		case Button_UI::BUY_RADIO:
-			clickSuccess = totalMoney >= 200 && !first_time_radio;
+			clickSuccess = totalMoney >= 5000 && !first_time_radio;
 			if(clickSuccess) {
 				first_time_radio = true;
 				Sound::loop(*background_sample, 1.0f, 0.0f);
-				totalMoney -= 200;
+				totalMoney -= 5000;
 				auto it = buttons.begin();
 				while(it != buttons.end()) {
 					PlayMode::Button_UI b = *it;
