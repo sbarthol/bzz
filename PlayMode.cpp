@@ -1745,10 +1745,20 @@ void PlayMode::draw_stats(glm::uvec2 const &drawable_size, float x, float y) {
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	GL_ERRORS();
 
-	std:: string sep = "      ";
+	std::string food_str = std::to_string((int)totalFood);
+	std::string money_str = std::to_string((int)totalMoney);
+	std::string egg_str = std::to_string(numEggs);
+	std::string nymph_str = std::to_string(numBabyCrickets);
+	std::string adult_str = std::to_string(numMatureCrickets);
+	std::string capacity_str = std::to_string(numEggs+ numBabyCrickets + numMatureCrickets + numDeadCrickets) + "/" + std::to_string(cageCapacity);
+
+	size_t content_len = food_str.size() + money_str.size() + egg_str.size() + nymph_str.size() + adult_str.size() + capacity_str.size();
+	size_t sep_len = 6 - (content_len / 20);
+
+	std:: string sep(sep_len, ' ');
 	
-	std::string s = "Food: " + std::to_string((int)totalFood) + sep + "Money: $" + std::to_string((int)totalMoney) + sep + "Eggs:" + std::to_string(numEggs) + sep + "Nymphs: " + std::to_string(numBabyCrickets) + sep + "Adults: " + std::to_string(numMatureCrickets);
-	s += sep + "Capacity: "  + std::to_string(numEggs+ numBabyCrickets + numMatureCrickets + numDeadCrickets) + "/" + std::to_string(cageCapacity);
+	std::string s = "Food:" + food_str + sep + "Money:$" + money_str + sep + "Eggs:" + egg_str + sep
+					+ "Nymphs:" + nymph_str + sep + "Adults:" + adult_str + sep + "Capacity:" + capacity_str;
 
 	std::string s2; 
 
