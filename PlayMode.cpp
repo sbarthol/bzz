@@ -1753,7 +1753,6 @@ void PlayMode::draw_stats(glm::uvec2 const &drawable_size, float x, float y) {
 	std::string capacity_str = std::to_string(numEggs+ numBabyCrickets + numMatureCrickets + numDeadCrickets) + "/" + std::to_string(cageCapacity);
 
 	int32_t content_len = (int32_t) (food_str.size() + money_str.size() + egg_str.size() + nymph_str.size() + adult_str.size() + capacity_str.size());
-	std::cout << content_len << std::endl;
 
 	std::string sep(6, ' ');
 	std::string offset(std::max(0, 4 - (content_len - 13) / 2), ' ');
