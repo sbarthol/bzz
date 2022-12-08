@@ -279,6 +279,8 @@ void PlayMode::spawn_cricket() {
 	cricket.hatchAge = get_rng_range(6.f, 9.f);
 	cricket.matureAge = get_rng_range(20.f, 30.f);
 	cricket.lifeSpan = get_rng_range(80.f, 110.f);
+	cricket.initialStarvationRobustness = 3.f + get_rng_range(0.f, 15.f);
+	cricket.currentstarvationRobustness = cricket.initialStarvationRobustness;
 	
 	Crickets.push_back(cricket);
 
@@ -962,19 +964,15 @@ void PlayMode::update(float elapsed) {
 		static float cur_elpased = 0.f;
 		cur_elpased += elapsed;
 		if(cur_elpased > 0.7) {
-			
-			// Todo: do adults eat more than babies ?
-			// Todo: do not eat at every frame
-		
-			if (totalFood == 0.f){
-				auto is_starving = [](){
-					return rand() % 1000 + 1 < 6;
-				};
-				for( Cricket &cricket: Crickets) {
-					if(cricket.is_dead() || cricket.is_egg()) {
-						continue;
+			for(Cricket &cricket: Crickets) {
+				if(cricket.is_dead() || cricket.is_egg()) {
+					continue;
+				}
+				if(totalFood == 0.f) {
+					cricket.currentstarvationRobustness -= cur_elpased;
+					if(cricket.currentstarvationRobustness < 0.f) {
+						cricket.is_healthy = false;
 					}
-					cricket.is_healthy = !is_starving();
 					if(cricket.is_dead()) {
 						if(!first_time_starved) {
 							first_time_starved = true;
@@ -984,8 +982,10 @@ void PlayMode::update(float elapsed) {
 						}
 						kill_cricket(cricket);
 					}
+				} else {
+					cricket.currentstarvationRobustness = cricket.initialStarvationRobustness;
 				}
-			}
+			}	
 			totalFood = std::max(0.f, totalFood - (numBabyCrickets + numMatureCrickets) * cricketEatingRate * cur_elpased);
 			cur_elpased = 0.f;
 		}
