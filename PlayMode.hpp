@@ -60,6 +60,8 @@ struct PlayMode : Mode {
 		float matureAge;
 		float hatchAge;
 		float juicyAge;
+		float initialStarvationRobustness;
+		float currentstarvationRobustness;
 		bool is_healthy = true;
 		bool is_juicy = false;
 		bool is_attacking = false;

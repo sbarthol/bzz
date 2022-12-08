@@ -279,6 +279,8 @@ void PlayMode::spawn_cricket() {
 	cricket.hatchAge = get_rng_range(6.f, 9.f);
 	cricket.matureAge = get_rng_range(20.f, 30.f);
 	cricket.lifeSpan = get_rng_range(80.f, 110.f);
+	cricket.initialStarvationRobustness = 3.f + get_rng_range(0.f, 15.f);
+	cricket.currentstarvationRobustness = cricket.initialStarvationRobustness;
 	
 	Crickets.push_back(cricket);
 
@@ -962,19 +964,15 @@ void PlayMode::update(float elapsed) {
 		static float cur_elpased = 0.f;
 		cur_elpased += elapsed;
 		if(cur_elpased > 0.7) {
-			
-			// Todo: do adults eat more than babies ?
-			// Todo: do not eat at every frame
-		
-			if (totalFood == 0.f){
-				auto is_starving = [](){
-					return rand() % 1000 + 1 < 6;
-				};
-				for( Cricket &cricket: Crickets) {
-					if(cricket.is_dead() || cricket.is_egg()) {
-						continue;
+			for(Cricket &cricket: Crickets) {
+				if(cricket.is_dead() || cricket.is_egg()) {
+					continue;
+				}
+				if(totalFood == 0.f) {
+					cricket.currentstarvationRobustness -= cur_elpased;
+					if(cricket.currentstarvationRobustness < 0.f) {
+						cricket.is_healthy = false;
 					}
-					cricket.is_healthy = !is_starving();
 					if(cricket.is_dead()) {
 						if(!first_time_starved) {
 							first_time_starved = true;
@@ -984,8 +982,10 @@ void PlayMode::update(float elapsed) {
 						}
 						kill_cricket(cricket);
 					}
+				} else {
+					cricket.currentstarvationRobustness = cricket.initialStarvationRobustness;
 				}
-			}
+			}	
 			totalFood = std::max(0.f, totalFood - (numBabyCrickets + numMatureCrickets) * cricketEatingRate * cur_elpased);
 			cur_elpased = 0.f;
 		}
@@ -1298,11 +1298,11 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 			break;
 	
 		case Button_UI::BUY_CAMERA:	
-			clickSuccess = totalMoney >= 400;
+			clickSuccess = totalMoney >= 10000;
 			if(clickSuccess) {
 				Sound::play(*cash_sample, 1.0f, 0.0f);
 				camera_body_transform->scale = glm::vec3(1.f);
-				totalMoney -= 400;
+				totalMoney -= 10000;
 				alt_camera_bought = true;
 				schedule_lambda([this](){
 					auto it = buttons.begin();
@@ -1320,22 +1320,20 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 			}
 			break;
 		case Button_UI::BUY_RADIO:
-			clickSuccess = totalMoney >= 200 && !first_time_radio;
+			clickSuccess = totalMoney >= 5000 && !first_time_radio;
 			if(clickSuccess) {
 				first_time_radio = true;
 				Sound::loop(*background_sample, 1.0f, 0.0f);
-				totalMoney -= 200;
-				schedule_lambda([this](){
-					auto it = buttons.begin();
-					while(it != buttons.end()) {
-						PlayMode::Button_UI b = *it;
-						if ( b.trigger_event == PlayMode::Button_UI::BUY_RADIO ) {
-							it = buttons.erase(it);
-						} else {
-							it++;
-						}
+				totalMoney -= 5000;
+				auto it = buttons.begin();
+				while(it != buttons.end()) {
+					PlayMode::Button_UI b = *it;
+					if ( b.trigger_event == PlayMode::Button_UI::BUY_RADIO ) {
+						it = buttons.erase(it);
+					} else {
+						it++;
 					}
-				}, 1.5f);
+				}
 			}
 			break;
 		case Button_UI::BUY_STEROIDS:	
@@ -1346,8 +1344,10 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 				for(Cricket &cricket: Crickets) {
 					if(!cricket.is_juicy) {
 						cricket.juicyAge = cricket.age;
+						cricket.currentstarvationRobustness = cricket.initialStarvationRobustness;
 					}
 					cricket.is_juicy = true;
+					cricket.initialStarvationRobustness *= 2.0;
 					cricket.lifeSpan = 10000.f;
 					cricket.age += 5;
 				}
@@ -1396,21 +1396,44 @@ bool PlayMode::buy_food() {
 bool PlayMode::upgrade_cage() {
 	std::cout << "increasing cage size" << std::endl;
 	
-	const float unitPrice = (float) cageCapacity*2;
+	const float unitPrice = (float) cageCapacity*4;
 	bool success = false;
 
 
 	if (totalMoney >= unitPrice) {
-		cageCapacity *= 2;
+		cageCapacity *= 4;
 		totalMoney -= unitPrice;
 		success = true;
 		
-		bedding_transform->scale.x *= 1.1f;
-		bedding_transform->scale.y *= 1.1f;
-		bedding_min *= 1.1f;
-		bedding_max *= 1.1f;
+		bedding_transform->scale.x *= 1.2f;
+		bedding_transform->scale.y *= 1.2f;
+		bedding_min *= 1.2f;
+		bedding_max *= 1.2f;
 
 		camera_body_transform->position.x = bedding_max.x + 1.16f;
+
+		if(cageCapacity*4 <= 819200) {
+			Button_UI *cage_button = nullptr;
+			for(Button_UI &b: buttons) {
+				if(b.trigger_event == Button_UI::UPGRADE_CAGE) {
+					cage_button = &b;
+				}
+			}
+			std::string icon_png = "../scenes/" + (cageCapacity*4 <= 819200 ? "cage_" + std::to_string((int)cageCapacity*4) + ".png" : "cage.png");
+			printf("%s\n", icon_png.c_str());
+			int ret = PlayMode::png_to_gl_texture(&cage_button->icon, data_path(icon_png));
+			assert(ret == 0);
+		} else {
+			auto it = buttons.begin();
+			while(it != buttons.end()) {
+				PlayMode::Button_UI b = *it;
+				if ( b.trigger_event == PlayMode::Button_UI::UPGRADE_CAGE ) {
+					it = buttons.erase(it);
+				} else {
+					it++;
+				}
+			}
+		}
 	}
 	return success;
 
@@ -1436,7 +1459,7 @@ bool PlayMode::buy_eggs() {
 	} else if (totalMoney >= unitPrice && is_at_capacity() && !first_time_cage_too_small) {
 		first_time_cage_too_small = true;
 		schedule_lambda([this](){
-				buttons.emplace_back(this, "../scenes/cage.png", Button_UI::UPGRADE_CAGE);
+				buttons.emplace_back(this, "../scenes/cage_200.png", Button_UI::UPGRADE_CAGE);
 				display_notification(data_path("../text/first_time_cage_too_small.txt"));
 		}, 1.5);
 	}
