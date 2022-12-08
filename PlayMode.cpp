@@ -1325,17 +1325,15 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 				first_time_radio = true;
 				Sound::loop(*background_sample, 1.0f, 0.0f);
 				totalMoney -= 200;
-				schedule_lambda([this](){
-					auto it = buttons.begin();
-					while(it != buttons.end()) {
-						PlayMode::Button_UI b = *it;
-						if ( b.trigger_event == PlayMode::Button_UI::BUY_RADIO ) {
-							it = buttons.erase(it);
-						} else {
-							it++;
-						}
+				auto it = buttons.begin();
+				while(it != buttons.end()) {
+					PlayMode::Button_UI b = *it;
+					if ( b.trigger_event == PlayMode::Button_UI::BUY_RADIO ) {
+						it = buttons.erase(it);
+					} else {
+						it++;
 					}
-				}, 1.5f);
+				}
 			}
 			break;
 		case Button_UI::BUY_STEROIDS:	
@@ -1396,21 +1394,44 @@ bool PlayMode::buy_food() {
 bool PlayMode::upgrade_cage() {
 	std::cout << "increasing cage size" << std::endl;
 	
-	const float unitPrice = (float) cageCapacity*2;
+	const float unitPrice = (float) cageCapacity*4;
 	bool success = false;
 
 
 	if (totalMoney >= unitPrice) {
-		cageCapacity *= 2;
+		cageCapacity *= 4;
 		totalMoney -= unitPrice;
 		success = true;
 		
-		bedding_transform->scale.x *= 1.1f;
-		bedding_transform->scale.y *= 1.1f;
-		bedding_min *= 1.1f;
-		bedding_max *= 1.1f;
+		bedding_transform->scale.x *= 1.2f;
+		bedding_transform->scale.y *= 1.2f;
+		bedding_min *= 1.2f;
+		bedding_max *= 1.2f;
 
 		camera_body_transform->position.x = bedding_max.x + 1.16f;
+
+		if(cageCapacity*4 <= 819200) {
+			Button_UI *cage_button = nullptr;
+			for(Button_UI &b: buttons) {
+				if(b.trigger_event == Button_UI::UPGRADE_CAGE) {
+					cage_button = &b;
+				}
+			}
+			std::string icon_png = "../scenes/" + (cageCapacity*4 <= 819200 ? "cage_" + std::to_string((int)cageCapacity*4) + ".png" : "cage.png");
+			printf("%s\n", icon_png.c_str());
+			int ret = PlayMode::png_to_gl_texture(&cage_button->icon, data_path(icon_png));
+			assert(ret == 0);
+		} else {
+			auto it = buttons.begin();
+			while(it != buttons.end()) {
+				PlayMode::Button_UI b = *it;
+				if ( b.trigger_event == PlayMode::Button_UI::UPGRADE_CAGE ) {
+					it = buttons.erase(it);
+				} else {
+					it++;
+				}
+			}
+		}
 	}
 	return success;
 
@@ -1436,7 +1457,7 @@ bool PlayMode::buy_eggs() {
 	} else if (totalMoney >= unitPrice && is_at_capacity() && !first_time_cage_too_small) {
 		first_time_cage_too_small = true;
 		schedule_lambda([this](){
-				buttons.emplace_back(this, "../scenes/cage.png", Button_UI::UPGRADE_CAGE);
+				buttons.emplace_back(this, "../scenes/cage_200.png", Button_UI::UPGRADE_CAGE);
 				display_notification(data_path("../text/first_time_cage_too_small.txt"));
 		}, 1.5);
 	}
