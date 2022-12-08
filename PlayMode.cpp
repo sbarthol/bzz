@@ -169,7 +169,7 @@ Load< Scene > bzz_scene(LoadTagDefault, []() -> Scene const * {
   		}
 			drawable.pipeline.textures[0].texture = tex.id;
 		}
-		if (mesh_name == "shadow") {
+		if (mesh_name.find("shadow") != std::string::npos) {
 			drawable.pipeline.blend = true;
 			drawable.transform->name = mesh_name;
 			struct PlayMode::texture tex;
