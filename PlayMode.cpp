@@ -1343,12 +1343,12 @@ void PlayMode::invoke_callback(Button_UI::call_back callback) {
 				totalMoney -= 400;
 				for(Cricket &cricket: Crickets) {
 					if(!cricket.is_juicy) {
+						cricket.lifeSpan = 10000.f;
+						cricket.initialStarvationRobustness *= 2.0;
 						cricket.juicyAge = cricket.age;
 						cricket.currentstarvationRobustness = cricket.initialStarvationRobustness;
 					}
 					cricket.is_juicy = true;
-					cricket.initialStarvationRobustness *= 2.0;
-					cricket.lifeSpan = 10000.f;
 					cricket.age += 5;
 				}
 				if(!first_time_steroids) {
